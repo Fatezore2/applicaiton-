@@ -1,0 +1,38 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isGroupMember(groupId) {
+      return exists(/databases/$(database)/documents/groups/$(groupId)) &&
+             get(/databases/$(database)/documents/groups/$(groupId)).data.members
+             .hasAny([request.auth.uid]);
+    }
+
+    function isGroupOwner(groupId) {
+      return request.auth != null &&
+             get(/databases/$(database)/documents/groups/$(groupId)).data.ownerId == request.auth.uid;
+    }
+
+    // Groups
+    match /groups/{groupId} {
+      allow read: if isGroupMember(groupId);
+      allow create: if request.auth != null;
+      allow update, delete: if isGroupOwner(groupId);
+
+      // joinRequests subcollection
+      match /joinRequests/{userId} {
+        allow create: if request.auth != null && request.auth.uid == userId; // user can request to join
+        allow read, update, delete: if isGroupOwner(groupId); // only owner can manage
+      }
+
+      // destinations / locations collections
+      match /destinations/{destId} { allow read, write: if isGroupMember(groupId); }
+      match /locations/{locId} { allow read, write: if isGroupMember(groupId); }
+    }
+
+    // Users
+    match /users/{userId} {
+      allow read, write: if request.auth.uid == userId;
+    }
+  }
+}
