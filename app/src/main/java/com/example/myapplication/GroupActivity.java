@@ -3,7 +3,9 @@ package com.example.myapplication;
 import android.app.AlertDialog;
 import android.os.Bundle;
 import android.text.TextUtils;
-import android.widget.*;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -24,6 +26,8 @@ public class GroupActivity extends AppCompatActivity {
     private String uid;
 
     private Button btnAddGroup, btnDeleteGroup, btnJoinGroup;
+
+    private ListenerRegistration groupListener;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -50,8 +54,6 @@ public class GroupActivity extends AppCompatActivity {
     }
 
     // ================= LOAD GROUPS =================
-    private ListenerRegistration groupListener;
-
     private void listenForGroups() {
         groupListener = db.collection("groups")
                 .whereArrayContains("members", uid)
@@ -70,7 +72,6 @@ public class GroupActivity extends AppCompatActivity {
                     adapter.notifyDataSetChanged();
                 });
     }
-
 
     // ================= CREATE GROUP =================
     private void showCreateGroupDialog() {
@@ -101,13 +102,20 @@ public class GroupActivity extends AppCompatActivity {
 
         db.collection("groups").add(g)
                 .addOnSuccessListener(docRef -> {
-                    Toast.makeText(this, "群組建立成功\n加入碼: " + joinCode, Toast.LENGTH_LONG).show();
 
-                    // set current group
-                    db.collection("users").document(uid)
-                            .update("currentGroupId", docRef.getId());
+                    String groupId = docRef.getId();
 
+                    // 🔥 FIX: use set with merge (NOT update)
+                    Map<String, Object> userData = new HashMap<>();
+                    userData.put("currentGroupId", groupId);
 
+                    db.collection("users")
+                            .document(uid)
+                            .set(userData, SetOptions.merge());
+
+                    Toast.makeText(this,
+                            "群組建立成功\n加入碼: " + joinCode,
+                            Toast.LENGTH_LONG).show();
                 });
     }
 
@@ -119,7 +127,8 @@ public class GroupActivity extends AppCompatActivity {
         }
 
         String[] names = new String[groupList.size()];
-        for (int i = 0; i < groupList.size(); i++) names[i] = groupList.get(i).getName();
+        for (int i = 0; i < groupList.size(); i++)
+            names[i] = groupList.get(i).getName();
 
         new AlertDialog.Builder(this)
                 .setTitle("選擇要退出的群組")
@@ -134,8 +143,11 @@ public class GroupActivity extends AppCompatActivity {
             db.collection("groups").document(group.getId())
                     .delete()
                     .addOnSuccessListener(v -> {
-                        Toast.makeText(this, "群組已刪除 (你是群主)", Toast.LENGTH_SHORT).show();
 
+                        clearCurrentGroupIfMatch(group.getId());
+                        Toast.makeText(this,
+                                "群組已刪除 (你是群主)",
+                                Toast.LENGTH_SHORT).show();
                     });
             return;
         }
@@ -144,9 +156,29 @@ public class GroupActivity extends AppCompatActivity {
         db.collection("groups").document(group.getId())
                 .update("members", FieldValue.arrayRemove(uid))
                 .addOnSuccessListener(v -> {
-                    Toast.makeText(this, "已退出群組", Toast.LENGTH_SHORT).show();
 
+                    clearCurrentGroupIfMatch(group.getId());
+                    Toast.makeText(this,
+                            "已退出群組",
+                            Toast.LENGTH_SHORT).show();
                 });
+    }
+
+    // 🔥 IMPORTANT: clear currentGroupId when leaving
+    private void clearCurrentGroupIfMatch(String groupId) {
+
+        DocumentReference userRef =
+                db.collection("users").document(uid);
+
+        userRef.get().addOnSuccessListener(doc -> {
+
+            if (doc.exists()) {
+                String current = doc.getString("currentGroupId");
+                if (groupId.equals(current)) {
+                    userRef.update("currentGroupId", FieldValue.delete());
+                }
+            }
+        });
     }
 
     // ================= JOIN CODE GENERATOR =================
@@ -159,26 +191,37 @@ public class GroupActivity extends AppCompatActivity {
         }
         return code.toString();
     }
+
     @Override
     protected void onDestroy() {
         super.onDestroy();
         if (groupListener != null) groupListener.remove();
     }
+
+    // ================= APPROVE USER =================
     private void approveUser(String groupId, String userId) {
-        FirebaseFirestore db = FirebaseFirestore.getInstance();
 
         WriteBatch batch = db.batch();
-        DocumentReference groupRef = db.collection("groups").document(groupId);
-        DocumentReference userRef = db.collection("users").document(userId);
-        DocumentReference reqRef = groupRef.collection("joinRequests").document(userId);
+        DocumentReference groupRef =
+                db.collection("groups").document(groupId);
+        DocumentReference userRef =
+                db.collection("users").document(userId);
+        DocumentReference reqRef =
+                groupRef.collection("joinRequests").document(userId);
 
-        batch.update(groupRef, "members", FieldValue.arrayUnion(userId));
-        batch.set(userRef, Collections.singletonMap("currentGroupId", groupId), SetOptions.merge());
+        batch.update(groupRef,
+                "members",
+                FieldValue.arrayUnion(userId));
+
+        batch.set(userRef,
+                Collections.singletonMap("currentGroupId", groupId),
+                SetOptions.merge());
+
         batch.delete(reqRef);
 
-        batch.commit().addOnSuccessListener(v -> {
-            Toast.makeText(this, "批准成功", Toast.LENGTH_SHORT).show();
-        });
+        batch.commit().addOnSuccessListener(v ->
+                Toast.makeText(this,
+                        "批准成功",
+                        Toast.LENGTH_SHORT).show());
     }
-
 }
