@@ -4,6 +4,8 @@ import android.Manifest;
 import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
+import android.graphics.drawable.Drawable;
 import android.location.Location;
 import android.os.Bundle;
 import android.text.TextUtils;
@@ -16,6 +18,9 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.request.target.CustomTarget;
+import com.bumptech.glide.request.transition.Transition;
 import com.google.android.gms.location.*;
 import com.google.android.gms.maps.*;
 import com.google.android.gms.maps.model.*;
@@ -26,24 +31,26 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class HomeActivity extends AppCompatActivity implements OnMapReadyCallback {
-
+    private FusedLocationProviderClient fusedLocationClient;
+    private LocationCallback locationCallback;
     private FirebaseAuth auth;
     private FirebaseFirestore db;
-
+    private boolean showOnlineOnly = false;
     private TextView tvLogo, tvTripTitle, tvDestinationTitle;
     private Button btnOpenGroup, btnJoinGroup, btnMoreOptions, btnMyLocation;
     private ImageView setting;
     private GoogleMap mMap;
     private String currentGroupId;
     private String uid;
-
+    private Map<String, Marker> memberMarkers = new HashMap<>();
     private static final int REQ_LOCATION = 1001;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_home);
-
+        fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
+        startLocationUpdates();
         auth = FirebaseAuth.getInstance();
         db = FirebaseFirestore.getInstance();
         uid = auth.getUid();
@@ -53,7 +60,38 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
         checkLocationPermission();
         loadCurrentGroup();
     }
+    @SuppressLint("MissingPermission")
+    private void startLocationUpdates() {
 
+        LocationRequest request = LocationRequest.create();
+        request.setInterval(5000); // 5秒更新一次
+        request.setPriority(Priority.PRIORITY_HIGH_ACCURACY);
+
+        locationCallback = new LocationCallback() {
+            @Override
+            public void onLocationResult(LocationResult result) {
+                if (result == null) return;
+
+                Location location = result.getLastLocation();
+                if (location != null && currentGroupId != null) {
+
+                    Map<String, Object> data = new HashMap<>();
+                    data.put("lat", location.getLatitude());
+                    data.put("lng", location.getLongitude());
+
+                    db.collection("users")
+                            .document(uid)
+                            .update(data);
+                }
+            }
+        };
+
+        fusedLocationClient.requestLocationUpdates(
+                request,
+                locationCallback,
+                getMainLooper()
+        );
+    }
     private void bindViews() {
         tvLogo = findViewById(R.id.tvLogo);
         tvTripTitle = findViewById(R.id.tvTripTitle);
@@ -61,9 +99,16 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
         btnOpenGroup = findViewById(R.id.btnOpenGroup);
         btnJoinGroup = findViewById(R.id.getgrounp);
         btnMoreOptions = findViewById(R.id.btnMoreOptions);
-        btnMyLocation = findViewById(R.id.btnMyLocation);
         setting = findViewById(R.id.setting);
+        ToggleButton toggleOnline = findViewById(R.id.toggleOnline);
 
+        toggleOnline.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            showOnlineOnly = isChecked;
+
+            if (currentGroupId != null) {
+                listenToGroupMembers(currentGroupId);
+            }
+        });
         SupportMapFragment mapFragment =
                 (SupportMapFragment) getSupportFragmentManager()
                         .findFragmentById(R.id.map);
@@ -91,6 +136,47 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
         });
     }
 
+    private ListenerRegistration membersListener;
+
+    private void listenToGroupMembers(String groupId) {
+
+        if (membersListener != null) membersListener.remove();
+
+        membersListener = db.collection("users")
+                .whereEqualTo("currentGroupId", groupId)
+                .addSnapshotListener((snap, e) -> {
+
+                    if (e != null || snap == null || mMap == null) return;
+
+                    for (DocumentSnapshot doc : snap.getDocuments()) {
+
+                        String memberUid = doc.getId();
+                        Double lat = doc.getDouble("lat");
+                        Double lng = doc.getDouble("lng");
+                        String username = doc.getString("username");
+                        String imageUrl = doc.getString("profileImageUrl");
+
+                        Boolean isOnline = doc.getBoolean("online");
+
+                        if (lat == null || lng == null) continue;
+
+                        // 👇 如果只顯示在線
+                        if (showOnlineOnly && (isOnline == null || !isOnline)) {
+                            removeMarker(memberUid);
+                            continue;
+                        }
+
+                        LatLng position = new LatLng(lat, lng);
+
+                        if (memberMarkers.containsKey(memberUid)) {
+                            memberMarkers.get(memberUid)
+                                    .setPosition(position);
+                        } else {
+                            addMarkerWithImage(memberUid, position, username, imageUrl);
+                        }
+                    }
+                });
+    }
     private ListenerRegistration userListener;
     private ListenerRegistration groupListener;
 
@@ -122,7 +208,7 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
                 });
     }
     private void listenToGroupName(String groupId) {
-
+        listenToGroupMembers(groupId);
         if (groupListener != null) groupListener.remove();
 
         groupListener = db.collection("groups")
@@ -238,6 +324,7 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
     @Override
     protected void onDestroy() {
         super.onDestroy();
+        if (membersListener != null) membersListener.remove();
         if (userListener != null) userListener.remove();
         if (groupListener != null) groupListener.remove();
     }
@@ -263,4 +350,78 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
             }
         }
     }
+    private void addMarkerWithImage(String uid,
+                                    LatLng position,
+                                    String username,
+                                    String imageUrl) {
+
+        if (imageUrl == null) {
+            Marker marker = mMap.addMarker(
+                    new MarkerOptions()
+                            .position(position)
+                            .title(username)
+            );
+            memberMarkers.put(uid, marker);
+            return;
+        }
+
+        Glide.with(this)
+                .asBitmap()
+                .load(imageUrl)
+                .circleCrop()
+                .into(new CustomTarget<Bitmap>() {
+                    @Override
+                    public void onResourceReady(Bitmap bitmap,
+                                                Transition<? super Bitmap> transition) {
+
+                        Bitmap smallBitmap =
+                                Bitmap.createScaledBitmap(bitmap,
+                                        120,
+                                        120,
+                                        false);
+
+                        Marker marker = mMap.addMarker(
+                                new MarkerOptions()
+                                        .position(position)
+                                        .title(username)
+                                        .icon(BitmapDescriptorFactory
+                                                .fromBitmap(smallBitmap))
+                        );
+
+                        memberMarkers.put(uid, marker);
+                    }
+
+                    @Override
+                    public void onLoadCleared(Drawable placeholder) {
+                    }
+                });
+    }
+    private void removeMarker(String uid) {
+        if (memberMarkers.containsKey(uid)) {
+            memberMarkers.get(uid).remove();
+            memberMarkers.remove(uid);
+        }
+    }
+    @Override
+    protected void onStart() {
+        super.onStart();
+        setOnlineStatus(true);
+    }
+    @Override
+    protected void onStop() {
+        super.onStop();
+        setOnlineStatus(false);
+    }
+    private void setOnlineStatus(boolean online) {
+
+        if (uid == null) return;
+
+        Map<String, Object> data = new HashMap<>();
+        data.put("online", online);
+
+        db.collection("users")
+                .document(uid)
+                .update(data);
+    }
+
 }

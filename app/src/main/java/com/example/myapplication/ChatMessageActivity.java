@@ -2,6 +2,8 @@ package com.example.myapplication;
 
 import android.content.ClipData;
 import android.content.ClipboardManager;
+import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.util.Log;
@@ -11,6 +13,8 @@ import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
@@ -19,10 +23,14 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.firebase.Timestamp;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.ListenerRegistration;
 import com.google.firebase.firestore.Query;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -51,6 +59,8 @@ public class ChatMessageActivity extends AppCompatActivity {
     private ChatAdapter chatAdapter;
     private List<ChatMessage> messageList = new ArrayList<>();
 
+    private ActivityResultLauncher<String> imagePickerLauncher;
+
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -61,9 +71,9 @@ public class ChatMessageActivity extends AppCompatActivity {
 
         bindViews();
         setupRecycler();
+        setupImagePicker();
         setupListeners();
 
-        // Get group ID from intent
         groupId = getIntent().getStringExtra("GROUP_ID");
 
         if (groupId != null) {
@@ -74,7 +84,24 @@ public class ChatMessageActivity extends AppCompatActivity {
         }
     }
 
-    // ================= BIND UI =================
+    // ================= IMAGE PICKER =================
+
+    private void setupImagePicker() {
+        imagePickerLauncher = registerForActivityResult(
+                new ActivityResultContracts.GetContent(),
+                uri -> {
+                    if (uri != null) {
+                        uploadImageToFirebase(uri);
+                    }
+                });
+    }
+
+    private void openImagePicker() {
+        imagePickerLauncher.launch("image/*");
+    }
+
+    // ================= BIND =================
+
     private void bindViews() {
         tvGroupName = findViewById(R.id.tvGroupName);
         btnInvite = findViewById(R.id.btnInvite);
@@ -85,6 +112,7 @@ public class ChatMessageActivity extends AppCompatActivity {
     }
 
     // ================= RECYCLER =================
+
     private void setupRecycler() {
         LinearLayoutManager manager = new LinearLayoutManager(this);
         manager.setStackFromEnd(true);
@@ -92,14 +120,18 @@ public class ChatMessageActivity extends AppCompatActivity {
 
         chatAdapter = new ChatAdapter(messageList);
         recyclerChat.setAdapter(chatAdapter);
+        chatAdapter.setOnMessageLongClickListener(message -> {
+            showDeleteDialog(message);
+        });
     }
 
-    // ================= LOAD GROUP FROM USER PROFILE =================
-    private void loadGroupFromUser() {
-        String uid = auth.getUid();
-        if (uid == null) return;
+    // ================= LOAD GROUP =================
 
-        db.collection("users").document(uid).get()
+    private void loadGroupFromUser() {
+        FirebaseUser user = auth.getCurrentUser();
+        if (user == null) return;
+
+        db.collection("users").document(user.getUid()).get()
                 .addOnSuccessListener(doc -> {
                     groupId = doc.getString("currentGroupId");
                     if (groupId == null) {
@@ -112,7 +144,6 @@ public class ChatMessageActivity extends AppCompatActivity {
                 });
     }
 
-    // ================= LOAD GROUP INFO =================
     private void loadGroupInfo() {
         db.collection("groups").document(groupId).get()
                 .addOnSuccessListener(doc -> {
@@ -125,19 +156,22 @@ public class ChatMessageActivity extends AppCompatActivity {
 
                     if (joinCode != null) {
                         tvJoinCode.setText("群組加入碼：" + joinCode);
-                    }
 
-                    // Tap to copy join code
-                    tvJoinCode.setOnClickListener(v -> {
-                        ClipboardManager cm = (ClipboardManager) getSystemService(CLIPBOARD_SERVICE);
-                        cm.setPrimaryClip(ClipData.newPlainText("JOIN_CODE", joinCode));
-                        Toast.makeText(this, "加入碼已複製", Toast.LENGTH_SHORT).show();
-                    });
+                        tvJoinCode.setOnClickListener(v -> {
+                            ClipboardManager cm =
+                                    (ClipboardManager) getSystemService(CLIPBOARD_SERVICE);
+                            cm.setPrimaryClip(
+                                    ClipData.newPlainText("JOIN_CODE", joinCode));
+                            Toast.makeText(this, "加入碼已複製", Toast.LENGTH_SHORT).show();
+                        });
+                    }
                 });
     }
 
-    // ================= CHAT LISTENER =================
+    // ================= LISTEN MESSAGES =================
+
     private void listenForMessages() {
+
         if (groupId == null) return;
 
         if (chatListener != null) chatListener.remove();
@@ -147,42 +181,57 @@ public class ChatMessageActivity extends AppCompatActivity {
                 .collection("messages")
                 .orderBy("timestamp", Query.Direction.ASCENDING)
                 .addSnapshotListener(this, (snapshots, e) -> {
+
                     if (e != null || snapshots == null) {
                         Log.e("Chat", "Listen failed", e);
                         return;
                     }
 
                     messageList.clear();
+
                     for (DocumentSnapshot doc : snapshots.getDocuments()) {
+
                         Map<String, Object> data = doc.getData();
                         if (data == null) continue;
 
-                        String id = doc.getId();
-                        String senderId = (String) data.get("senderId");
-                        String senderName = (String) data.get("senderName");
-                        Timestamp timestamp = (Timestamp) data.get("timestamp");
-                        MContent content = MContent.fromMap(data);
+                        Timestamp timestamp = doc.getTimestamp("timestamp");
 
+                        // ignore temporary null timestamp
+                        if (timestamp == null) continue;
+
+                        MContent content = MContent.fromMap(data);
                         if (content == null) continue;
 
-                        messageList.add(new ChatMessage(id, senderId, senderName, timestamp, content));
+                        messageList.add(new ChatMessage(
+                                doc.getId(),
+                                doc.getString("senderId"),
+                                doc.getString("senderName"),
+                                timestamp,
+                                content
+                        ));
                     }
 
                     chatAdapter.notifyDataSetChanged();
-                    recyclerChat.scrollToPosition(messageList.size() - 1);
+
+                    if (!messageList.isEmpty()) {
+                        recyclerChat.scrollToPosition(messageList.size() - 1);
+                    }
                 });
     }
 
-    // ================= SEND MESSAGE =================
+    // ================= SEND TEXT =================
+
     private void sendMessage() {
+
         String text = etMessage.getText().toString().trim();
         if (TextUtils.isEmpty(text)) return;
 
-        String uid = auth.getUid();
-        if (uid == null) return;
+        FirebaseUser user = auth.getCurrentUser();
+        if (user == null) return;
 
-        db.collection("users").document(uid).get()
+        db.collection("users").document(user.getUid()).get()
                 .addOnSuccessListener(doc -> {
+
                     String senderName = doc.getString("username");
                     if (senderName == null) senderName = "匿名";
 
@@ -190,7 +239,7 @@ public class ChatMessageActivity extends AppCompatActivity {
 
                     ChatMessage msg = new ChatMessage(
                             null,
-                            uid,
+                            user.getUid(),
                             senderName,
                             null,
                             content
@@ -204,27 +253,103 @@ public class ChatMessageActivity extends AppCompatActivity {
                 });
     }
 
-    // ================= INVITE DIALOG =================
-    private void showInviteDialog() {
-        if (joinCode == null) return;
+    // ================= SEND IMAGE =================
 
-        new AlertDialog.Builder(this)
-                .setTitle("邀請成員")
-                .setMessage("請分享此加入碼給朋友：\n\n" + joinCode)
-                .setPositiveButton("OK", null)
-                .show();
+    private void uploadImageToFirebase(Uri uri) {
+
+        FirebaseUser user = auth.getCurrentUser();
+        if (user == null || groupId == null) return;
+
+        Toast.makeText(this, "圖片上傳中...", Toast.LENGTH_SHORT).show();
+
+        StorageReference ref = FirebaseStorage.getInstance()
+                .getReference()
+                .child("chat_images")
+                .child(groupId)
+                .child(System.currentTimeMillis() + ".jpg");
+
+        ref.putFile(uri)
+                .addOnSuccessListener(taskSnapshot ->
+                        ref.getDownloadUrl().addOnSuccessListener(downloadUrl ->
+                                sendImageMessage(downloadUrl.toString())))
+                .addOnFailureListener(e ->
+                        Toast.makeText(this, "圖片上傳失敗", Toast.LENGTH_SHORT).show());
+    }
+
+    private void sendImageMessage(String imageUrl) {
+
+        FirebaseUser user = auth.getCurrentUser();
+        if (user == null) return;
+
+        db.collection("users").document(user.getUid()).get()
+                .addOnSuccessListener(doc -> {
+
+                    String senderName = doc.getString("username");
+                    if (senderName == null) senderName = "匿名";
+
+                    MCImage content = new MCImage(imageUrl);
+
+                    ChatMessage msg = new ChatMessage(
+                            null,
+                            user.getUid(),
+                            senderName,
+                            null,
+                            content
+                    );
+
+                    db.collection("groups")
+                            .document(groupId)
+                            .collection("messages")
+                            .add(msg.toMap());
+                });
     }
 
     // ================= LISTENERS =================
+
     private void setupListeners() {
         btnSend.setOnClickListener(v -> sendMessage());
-        btnInvite.setOnClickListener(v -> showInviteDialog());
+        btnInvite.setOnClickListener(v -> openImagePicker());
     }
 
     // ================= CLEAN UP =================
+
     @Override
     protected void onDestroy() {
         super.onDestroy();
         if (chatListener != null) chatListener.remove();
+    }
+    private void showDeleteDialog(ChatMessage message) {
+
+        FirebaseUser user = auth.getCurrentUser();
+        if (user == null) return;
+
+        // 只允許刪除自己訊息
+        if (!user.getUid().equals(message.getSenderId())) {
+            Toast.makeText(this, "他人のメッセージは削除できません", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        new AlertDialog.Builder(this)
+                .setTitle("メッセージ削除")
+                .setMessage("このメッセージを削除しますか？")
+                .setPositiveButton("削除", (dialog, which) -> deleteMessage(message))
+                .setNegativeButton("キャンセル", null)
+                .show();
+    }
+    private void deleteMessage(ChatMessage message) {
+
+        if (groupId == null || message.getId() == null) return;
+
+        db.collection("groups")
+                .document(groupId)
+                .collection("messages")
+                .document(message.getId())
+                .delete()
+                .addOnSuccessListener(unused ->
+                        Toast.makeText(this, "削除しました", Toast.LENGTH_SHORT).show()
+                )
+                .addOnFailureListener(e ->
+                        Toast.makeText(this, "削除失敗", Toast.LENGTH_SHORT).show()
+                );
     }
 }

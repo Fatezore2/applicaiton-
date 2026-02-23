@@ -20,7 +20,7 @@ public class ChatAdapter extends RecyclerView.Adapter<ChatAdapter.ChatVH> {
 
     private List<ChatMessage> messages;
     private String currentUserId;
-
+    private OnMessageLongClickListener longClickListener;
     private static final int TYPE_ME = 0;
     private static final int TYPE_OTHER = 1;
 
@@ -54,17 +54,29 @@ public class ChatAdapter extends RecyclerView.Adapter<ChatAdapter.ChatVH> {
         }
         return new ChatVH(view);
     }
-
+    public interface OnMessageLongClickListener {
+        void onMessageLongClick(ChatMessage message);
+    }
     public void onBindViewHolder(@NonNull ChatVH holder, int position) {
         ChatMessage msg = messages.get(position);
-
+        holder.itemView.setOnLongClickListener(v -> {
+            if (longClickListener != null) {
+                longClickListener.onMessageLongClick(msg);
+            }
+            return true;
+        });
         // Sender name
         holder.tvSenderName.setText(
                 msg.getSenderName() != null && !msg.getSenderName().trim().isEmpty()
                         ? msg.getSenderName() + ":"
                         : "匿名:"
         );
-
+        holder.itemView.setOnLongClickListener(v -> {
+            if (longClickListener != null) {
+                longClickListener.onMessageLongClick(msg);
+            }
+            return true;
+        });
         // Timestamp (null-safe)
         String timeText = "[時間未知]";
         if (msg.getTimestamp() != null) {
@@ -132,5 +144,8 @@ public class ChatAdapter extends RecyclerView.Adapter<ChatAdapter.ChatVH> {
             ivMessage = itemView.findViewById(R.id.ivMessage);
             btnPlay = itemView.findViewById(R.id.btnPlay);
         }
+    }
+    public void setOnMessageLongClickListener(OnMessageLongClickListener listener) {
+        this.longClickListener = listener;
     }
 }

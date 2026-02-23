@@ -2,19 +2,19 @@ package com.example.myapplication;
 
 import android.app.Activity;
 import android.content.Intent;
-import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Bundle;
-import android.provider.MediaStore;
 import android.widget.*;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.bumptech.glide.Glide;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
 
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
@@ -30,8 +30,11 @@ public class settingActivity extends AppCompatActivity {
 
     private FirebaseAuth auth;
     private FirebaseFirestore db;
+    private FirebaseStorage storage;
+    private StorageReference storageRef;
 
     private String uid;
+    private Uri selectedImageUri;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -40,6 +43,9 @@ public class settingActivity extends AppCompatActivity {
 
         auth = FirebaseAuth.getInstance();
         db = FirebaseFirestore.getInstance();
+        storage = FirebaseStorage.getInstance("gs://project-221c4.firebasestorage.app");
+        storageRef = storage.getReference();
+
         uid = auth.getUid();
 
         bindViews();
@@ -58,7 +64,7 @@ public class settingActivity extends AppCompatActivity {
         tvCountry = findViewById(R.id.tvCountry);
     }
 
-    // ================= Load Current User Data =================
+    // ================= Load User Info =================
     private void loadUserInfo() {
         if (uid == null) return;
 
@@ -67,17 +73,26 @@ public class settingActivity extends AppCompatActivity {
                     if (!doc.exists()) return;
 
                     String username = doc.getString("username");
+                    String imageUrl = doc.getString("profileImageUrl");
+
                     if (username != null) {
                         etUsername.setText(username);
+                    }
+
+                    if (imageUrl != null) {
+                        Glide.with(this)
+                                .load(imageUrl)
+                                .into(imgProfile);
                     }
                 });
     }
 
-    // ================= Setup Click Listeners =================
+    // ================= Listeners =================
     private void setupListeners() {
 
         // Save username
         btnSaveUsername.setOnClickListener(v -> {
+
             String newName = etUsername.getText().toString().trim();
             if (newName.isEmpty()) {
                 toast("Username cannot be empty");
@@ -95,24 +110,18 @@ public class settingActivity extends AppCompatActivity {
                     .addOnSuccessListener(unused ->
                             toast("Username updated"))
                     .addOnFailureListener(e ->
-                            toast("Update failed: " + e.getMessage()));
+                            toast("Update failed"));
         });
 
-        // Change profile icon
+        // Pick Image
         btnChangeIcon.setOnClickListener(v -> openGallery());
 
         // Logout
         btnLogout.setOnClickListener(v -> {
             FirebaseAuth.getInstance().signOut();
-            startActivity(new Intent(settingActivity.this, MainActivity.class));
+            startActivity(new Intent(this, MainActivity.class));
             finish();
         });
-    }
-
-    // ================= Display Country =================
-    private void displayCountry() {
-        String country = Locale.getDefault().getDisplayCountry();
-        tvCountry.setText(country);
     }
 
     // ================= Open Gallery =================
@@ -122,35 +131,57 @@ public class settingActivity extends AppCompatActivity {
         startActivityForResult(intent, PICK_IMAGE);
     }
 
-    // ================= Handle Selected Image =================
+    // ================= Handle Image Result =================
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
 
-        if (requestCode == PICK_IMAGE && resultCode == Activity.RESULT_OK && data != null) {
+        if (requestCode == PICK_IMAGE &&
+                resultCode == Activity.RESULT_OK &&
+                data != null) {
 
-            Uri imageUri = data.getData();
+            selectedImageUri = data.getData();
 
-            try {
-                Bitmap bitmap = MediaStore.Images.Media.getBitmap(
-                        this.getContentResolver(),
-                        imageUri
-                );
+            imgProfile.setImageURI(selectedImageUri);
 
-                imgProfile.setImageBitmap(bitmap);
-
-                // NOTE:
-                // This only changes local UI.
-                // If you want to save image to Firebase Storage,
-                // tell me and I’ll add full upload code.
-
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+            uploadProfileImage(); // Upload immediately
         }
     }
 
-    // ================= Toast Helper =================
+    // ================= Upload Image =================
+    private void uploadProfileImage() {
+
+        if (selectedImageUri == null || uid == null) return;
+
+        StorageReference profileRef =
+                storageRef.child("profile_images/" + uid + ".jpg");
+
+        profileRef.putFile(selectedImageUri)
+                .addOnSuccessListener(taskSnapshot ->
+                        profileRef.getDownloadUrl()
+                                .addOnSuccessListener(uri -> {
+
+                                    String imageUrl = uri.toString();
+
+                                    Map<String, Object> data = new HashMap<>();
+                                    data.put("profileImageUrl", imageUrl);
+
+                                    db.collection("users")
+                                            .document(uid)
+                                            .update(data)
+                                            .addOnSuccessListener(unused ->
+                                                    toast("Profile image updated"));
+                                }))
+                .addOnFailureListener(e ->
+                        toast("Upload failed"));
+    }
+
+    // ================= Country =================
+    private void displayCountry() {
+        String country = Locale.getDefault().getDisplayCountry();
+        tvCountry.setText(country);
+    }
+
     private void toast(String msg) {
         Toast.makeText(this, msg, Toast.LENGTH_SHORT).show();
     }
