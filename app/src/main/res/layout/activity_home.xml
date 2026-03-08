@@ -31,15 +31,14 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent">
 
-        <TextView
-            android:id="@+id/tvLogo"
+        <ImageView
+            android:id="@+id/locame"
             android:layout_width="40dp"
             android:layout_height="40dp"
-            android:background="#2EC4C1"
-            android:gravity="center"
-            android:textColor="@android:color/white"
-            android:textStyle="bold"
-            android:textSize="14sp"/>
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:padding="8dp"
+            android:src="@drawable/gear"
+            android:tint="@android:color/black"/>
 
         <LinearLayout
             android:id="@+id/layoutBrand"
@@ -137,10 +136,10 @@
                 android:id="@+id/tvDestinationTitle"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_marginBottom="8dp"
                 android:text="📍 行程目的地"
                 android:textSize="16sp"
-                android:textStyle="bold"
-                android:layout_marginBottom="8dp"/>
+                android:textStyle="bold" />
 
             <LinearLayout
                 android:id="@+id/layoutDestinationList"

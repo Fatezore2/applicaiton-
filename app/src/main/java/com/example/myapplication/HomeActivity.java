@@ -1,12 +1,16 @@
 package com.example.myapplication;
 
 import android.Manifest;
+import android.animation.ValueAnimator;
 import android.annotation.SuppressLint;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.drawable.Drawable;
 import android.location.Location;
+import android.os.Build;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.util.Log;
@@ -51,7 +55,7 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
     private boolean showOnlineOnly = false;
     private TextView tvLogo, tvTripTitle, tvDestinationTitle;
     private Button btnOpenGroup, btnJoinGroup, btnMoreOptions, btnMyLocation;
-    private ImageView setting;
+    private ImageView setting,locame;
     private GoogleMap mMap;
     private String currentGroupId;
     private String uid;
@@ -62,13 +66,15 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
         setContentView(R.layout.activity_home);
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
         startLocationUpdates();
         auth = FirebaseAuth.getInstance();
         db = FirebaseFirestore.getInstance();
         uid = auth.getUid();
-
+        fusedLocationClient.removeLocationUpdates(locationCallback);
+        createNotificationChannel();
         bindViews();
         setupListeners();
         checkLocationPermission();
@@ -158,18 +164,19 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
         long minutes = (diff / (1000 * 60)) % 60;
 
         tvDestinationTitle.setText(
-                "Next: " + city + " in " +
-                        hours + "h " + minutes + "m"
+                "📍 Next Stop: " + city +
+                        "\n⏳ " + hours + "h " + minutes + "m remaining"
         );
     }
     private void bindViews() {
-        tvLogo = findViewById(R.id.tvLogo);
+
         tvTripTitle = findViewById(R.id.tvTripTitle);
         tvDestinationTitle = findViewById(R.id.tvDestinationTitle);
         btnOpenGroup = findViewById(R.id.btnOpenGroup);
         btnJoinGroup = findViewById(R.id.getgrounp);
         btnMoreOptions = findViewById(R.id.btnMoreOptions);
         setting = findViewById(R.id.setting);
+        locame = findViewById(R.id.locame);
         ToggleButton toggleOnline = findViewById(R.id.toggleOnline);
 
         toggleOnline.setOnCheckedChangeListener((buttonView, isChecked) -> {
@@ -189,7 +196,7 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
 
     private void setupListeners() {
-
+        locame.setOnClickListener(v -> moveToMyLocation());
         btnOpenGroup.setOnClickListener(v ->
                 startActivity(new Intent(this, GroupActivity.class)));
 
@@ -205,7 +212,28 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
             startActivity(new Intent(this, DestiationActivitysetting.class));
         });
     }
+    @SuppressLint("MissingPermission")
+    private void moveToMyLocation() {
 
+        if (ContextCompat.checkSelfPermission(this,
+                Manifest.permission.ACCESS_FINE_LOCATION)
+                != PackageManager.PERMISSION_GRANTED) return;
+
+        fusedLocationClient.getLastLocation()
+                .addOnSuccessListener(location -> {
+
+                    if (location == null || mMap == null) return;
+
+                    LatLng myLocation = new LatLng(
+                            location.getLatitude(),
+                            location.getLongitude()
+                    );
+
+                    mMap.animateCamera(
+                            CameraUpdateFactory.newLatLngZoom(myLocation, 17f)
+                    );
+                });
+    }
     private ListenerRegistration membersListener;
 
     private void listenToGroupMembers(String groupId) {
@@ -239,13 +267,50 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
                         LatLng position = new LatLng(lat, lng);
 
                         if (memberMarkers.containsKey(memberUid)) {
-                            memberMarkers.get(memberUid)
-                                    .setPosition(position);
+                            animateMarker(memberMarkers.get(memberUid), position);
                         } else {
                             addMarkerWithImage(memberUid, position, username, imageUrl);
                         }
                     }
                 });
+    }
+    private void createNotificationChannel() {
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+
+            NotificationChannel channel = new NotificationChannel(
+                    "destination_alert",
+                    "Destination Alerts",
+                    NotificationManager.IMPORTANCE_HIGH
+            );
+
+            NotificationManager manager =
+                    getSystemService(NotificationManager.class);
+
+            manager.createNotificationChannel(channel);
+        }
+    }
+    private void animateMarker(Marker marker, LatLng toPosition) {
+
+        LatLng start = marker.getPosition();
+
+        ValueAnimator animator = ValueAnimator.ofFloat(0, 1);
+        animator.setDuration(1000);
+
+        animator.addUpdateListener(animation -> {
+
+            float v = (float) animation.getAnimatedValue();
+
+            double lat = v * toPosition.latitude +
+                    (1 - v) * start.latitude;
+
+            double lng = v * toPosition.longitude +
+                    (1 - v) * start.longitude;
+
+            marker.setPosition(new LatLng(lat, lng));
+        });
+
+        animator.start();
     }
     private void setupDestinationInteractions() {
 
@@ -385,47 +450,91 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
         destinationMarkers.clear();
 
-        List<LatLng> routePoints = new ArrayList<>();
+        fusedLocationClient.getLastLocation()
+                .addOnSuccessListener(location -> {
+
+                    List<LatLng> routePoints = new ArrayList<>();
+
+                    // 1️⃣ User location
+                    if (location != null) {
+
+                        LatLng myLocation = new LatLng(
+                                location.getLatitude(),
+                                location.getLongitude()
+                        );
+
+                        routePoints.add(myLocation);
+                    }
+
+                    // 2️⃣ Destinations
+                    for (DocumentSnapshot doc : destinationDocs) {
+
+                        String docId = doc.getId();
+                        Double lat = doc.getDouble("lat");
+                        Double lng = doc.getDouble("lng");
+                        String city = doc.getString("city");
+                        Date date = doc.getDate("dateTime");
+
+                        if (lat == null || lng == null) continue;
+
+                        LatLng pos = new LatLng(lat, lng);
+                        routePoints.add(pos);
+
+                        String countdownText = getCountdownText(date);
+
+                        Marker marker = mMap.addMarker(
+                                new MarkerOptions()
+                                        .position(pos)
+                                        .title("📍 " + city + countdownText)
+                                        .icon(BitmapDescriptorFactory
+                                                .defaultMarker(BitmapDescriptorFactory.HUE_AZURE))
+                        );
+
+                        marker.setTag(docId);
+                        destinationMarkers.put(docId, marker);
+                    }
+
+                    // 3️⃣ Draw route
+                    if (routePolyline != null) routePolyline.remove();
+
+                    if (routePoints.size() > 1) {
+
+                        routePolyline = mMap.addPolyline(
+                                new PolylineOptions()
+                                        .addAll(routePoints)
+                                        .width(10f)
+                                        .color(0xFF2196F3)
+                                        .geodesic(true)
+                        );
+                    }
+
+                    updateNextDestinationText();
+                });
+    }
+    private void drawDestinationRoute(List<LatLng> routePoints) {
 
         for (DocumentSnapshot doc : destinationDocs) {
 
-            String docId = doc.getId();
             Double lat = doc.getDouble("lat");
             Double lng = doc.getDouble("lng");
-            String city = doc.getString("city");
-            Date date = doc.getDate("dateTime");
 
             if (lat == null || lng == null) continue;
 
-            LatLng pos = new LatLng(lat, lng);
-            routePoints.add(pos);
-
-            String countdownText = getCountdownText(date);
-
-            Marker marker = mMap.addMarker(
-                    new MarkerOptions()
-                            .position(pos)
-                            .title("📍 " + city + countdownText)
-                            .icon(BitmapDescriptorFactory
-                                    .defaultMarker(BitmapDescriptorFactory.HUE_AZURE))
-            );
-
-            marker.setTag(docId);
-            destinationMarkers.put(docId, marker);
+            routePoints.add(new LatLng(lat, lng));
         }
 
         if (routePolyline != null) routePolyline.remove();
 
         if (routePoints.size() > 1) {
+
             routePolyline = mMap.addPolyline(
                     new PolylineOptions()
                             .addAll(routePoints)
-                            .width(8f)
-                            .color(0xFF2EC4C1)
+                            .width(10f)
+                            .color(0xFF2196F3)
+                            .geodesic(true)
             );
         }
-
-        updateNextDestinationText();
     }
     private void showJoinDialog() {
 
@@ -503,16 +612,30 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
     @SuppressLint("MissingPermission")
     @Override
     public void onMapReady(@NonNull GoogleMap googleMap) {
-        mMap = googleMap;
 
-        LatLng tokyo = new LatLng(35.681236, 139.767125);
-        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(tokyo, 15f));
+        mMap = googleMap;
 
         if (ContextCompat.checkSelfPermission(this,
                 Manifest.permission.ACCESS_FINE_LOCATION)
                 == PackageManager.PERMISSION_GRANTED) {
 
             mMap.setMyLocationEnabled(true);
+
+            fusedLocationClient.getLastLocation()
+                    .addOnSuccessListener(location -> {
+
+                        if (location != null) {
+
+                            LatLng myLocation = new LatLng(
+                                    location.getLatitude(),
+                                    location.getLongitude()
+                            );
+
+                            mMap.moveCamera(
+                                    CameraUpdateFactory.newLatLngZoom(myLocation, 16f)
+                            );
+                        }
+                    });
         }
     }
 

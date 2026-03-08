@@ -1,8 +1,10 @@
 package com.example.myapplication;
 
 import android.app.AlertDialog;
+import android.content.Intent;
 import android.os.Bundle;
 import android.text.TextUtils;
+import android.util.Log;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
@@ -15,6 +17,7 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.*;
 
 import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class GroupActivity extends AppCompatActivity {
 
@@ -26,8 +29,7 @@ public class GroupActivity extends AppCompatActivity {
     private String uid;
 
     private Button btnAddGroup, btnDeleteGroup, btnJoinGroup;
-
-    private ListenerRegistration groupListener;
+    private ListenerRegistration userListener;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -41,8 +43,19 @@ public class GroupActivity extends AppCompatActivity {
         db = FirebaseFirestore.getInstance();
         uid = FirebaseAuth.getInstance().getUid();
 
-        adapter = new GroupAdapter(groupList, g ->
-                Toast.makeText(this, "Selected: " + g.getName(), Toast.LENGTH_SHORT).show());
+        if (uid == null) {
+            Toast.makeText(this, "請先登入", Toast.LENGTH_SHORT).show();
+            finish();
+            return;
+        }
+
+        adapter = new GroupAdapter(groupList, group -> {
+            // 點擊群組項目時，進入聊天室
+            Intent intent = new Intent(GroupActivity.this, ChatMessageActivity.class);
+            intent.putExtra("GROUP_ID", group.getId());
+            intent.putExtra("GROUP_NAME", group.getName());
+            startActivity(intent);
+        });
 
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         recyclerView.setAdapter(adapter);
@@ -53,24 +66,149 @@ public class GroupActivity extends AppCompatActivity {
         btnDeleteGroup.setOnClickListener(v -> showLeaveGroupDialog());
     }
 
-    // ================= LOAD GROUPS =================
+    // ================= 從 users 文件讀取群組 =================
     private void listenForGroups() {
-        groupListener = db.collection("groups")
-                .whereArrayContains("members", uid)
-                .addSnapshotListener((snapshots, e) -> {
-                    if (e != null || snapshots == null) return;
+        Log.d("GroupActivity", "開始監聽用戶群組，UID: " + uid);
 
-                    groupList.clear();
-                    for (DocumentSnapshot doc : snapshots.getDocuments()) {
-                        groupList.add(new GroupItem(
-                                doc.getId(),
-                                doc.getString("name"),
-                                (List<String>) doc.get("members"),
-                                doc.getString("ownerId")
-                        ));
+        userListener = db.collection("users")
+                .document(uid)
+                .addSnapshotListener((documentSnapshot, error) -> {
+                    if (error != null) {
+                        Log.e("GroupActivity", "監聽錯誤", error);
+                        return;
                     }
-                    adapter.notifyDataSetChanged();
+
+                    if (documentSnapshot == null || !documentSnapshot.exists()) {
+                        Log.d("GroupActivity", "用戶文件不存在");
+                        groupList.clear();
+                        adapter.notifyDataSetChanged();
+                        return;
+                    }
+
+                    // 🔴 取得 groups 物件（Map 格式）
+                    Object groupsObj = documentSnapshot.get("groups");
+
+                    if (groupsObj == null) {
+                        Log.d("GroupActivity", "沒有群組");
+                        groupList.clear();
+                        adapter.notifyDataSetChanged();
+                        return;
+                    }
+
+                    if (!(groupsObj instanceof Map)) {
+                        Log.e("GroupActivity", "groups 不是 Map 類型");
+                        return;
+                    }
+
+                    Map<String, Object> groupsMap = (Map<String, Object>) groupsObj;
+                    Log.d("GroupActivity", "找到 " + groupsMap.size() + " 個群組");
+
+                    // 清空列表
+                    groupList.clear();
+
+                    // 使用 AtomicInteger 追蹤載入完成數量
+                    AtomicInteger pendingCount = new AtomicInteger(groupsMap.size());
+                    List<GroupItem> tempList = new ArrayList<>();
+
+                    if (groupsMap.isEmpty()) {
+                        adapter.notifyDataSetChanged();
+                        return;
+                    }
+
+                    // 遍歷所有群組
+                    for (Map.Entry<String, Object> entry : groupsMap.entrySet()) {
+                        String groupId = entry.getKey();
+                        Object groupDataObj = entry.getValue();
+
+                        if (!(groupDataObj instanceof Map)) {
+                            Log.e("GroupActivity", "群組資料格式錯誤: " + groupId);
+                            if (pendingCount.decrementAndGet() == 0) {
+                                updateGroupList(tempList);
+                            }
+                            continue;
+                        }
+
+                        Map<String, Object> groupData = (Map<String, Object>) groupDataObj;
+                        String groupName = (String) groupData.get("groupName");
+                        String role = (String) groupData.get("role");
+
+                        Log.d("GroupActivity", "處理群組: " + groupName + " (ID: " + groupId + ")");
+
+                        // 獲取成員數量
+                        db.collection("groups")
+                                .document(groupId)
+                                .collection("members")
+                                .get()
+                                .addOnSuccessListener(membersSnapshot -> {
+                                    int memberCount = membersSnapshot.size();
+                                    Log.d("GroupActivity", "群組 " + groupName + " 有 " + memberCount + " 位成員");
+
+                                    // 獲取群組 ownerId
+                                    db.collection("groups")
+                                            .document(groupId)
+                                            .get()
+                                            .addOnSuccessListener(groupDoc -> {
+                                                String ownerId = groupDoc.getString("createdBy");
+
+                                                GroupItem item = new GroupItem(
+                                                        groupId,
+                                                        groupName != null ? groupName : "未命名群組",
+                                                        memberCount,
+                                                        role,
+                                                        ownerId
+                                                );
+                                                tempList.add(item);
+
+                                                if (pendingCount.decrementAndGet() == 0) {
+                                                    updateGroupList(tempList);
+                                                }
+                                            })
+                                            .addOnFailureListener(e -> {
+                                                // 如果無法獲取 ownerId，仍然加入群組
+                                                GroupItem item = new GroupItem(
+                                                        groupId,
+                                                        groupName != null ? groupName : "未命名群組",
+                                                        memberCount,
+                                                        role,
+                                                        null
+                                                );
+                                                tempList.add(item);
+
+                                                if (pendingCount.decrementAndGet() == 0) {
+                                                    updateGroupList(tempList);
+                                                }
+                                            });
+                                })
+                                .addOnFailureListener(e -> {
+                                    Log.e("GroupActivity", "獲取成員數量失敗: " + groupId, e);
+
+                                    // 即使失敗也要加入基本資料
+                                    GroupItem item = new GroupItem(
+                                            groupId,
+                                            groupName != null ? groupName : "未命名群組",
+                                            1,  // 預設至少 1 位成員（自己）
+                                            role != null ? role : "member",
+                                            null
+                                    );
+                                    tempList.add(item);
+
+                                    if (pendingCount.decrementAndGet() == 0) {
+                                        updateGroupList(tempList);
+                                    }
+                                });
+                    }
                 });
+    }
+
+    private void updateGroupList(List<GroupItem> tempList) {
+        groupList.clear();
+        groupList.addAll(tempList);
+
+        // 依群組名稱排序
+        Collections.sort(groupList, (a, b) -> a.getName().compareTo(b.getName()));
+
+        adapter.notifyDataSetChanged();
+        Log.d("GroupActivity", "群組列表更新完成，共 " + groupList.size() + " 個群組");
     }
 
     // ================= CREATE GROUP =================
@@ -89,42 +227,63 @@ public class GroupActivity extends AppCompatActivity {
         builder.setNegativeButton("取消", null);
         builder.show();
     }
-    private void createGroup(String name) {
 
+    private void createGroup(String name) {
         String joinCode = generateJoinCode();
 
-        Map<String, Object> g = new HashMap<>();
-        g.put("name", name);
-        g.put("ownerId", uid);
-        g.put("joinCode", joinCode);
-        g.put("createdAt", FieldValue.serverTimestamp());
+        Map<String, Object> groupData = new HashMap<>();
+        groupData.put("name", name);
+        groupData.put("createdBy", uid);
+        groupData.put("joinCode", joinCode);
+        groupData.put("memberCount", 1);
+        groupData.put("createdAt", FieldValue.serverTimestamp());
 
-        // 🔥 必須加入 members array
-        g.put("members", Arrays.asList(uid));
-
-        db.collection("groups").add(g)
+        db.collection("groups")
+                .add(groupData)
                 .addOnSuccessListener(docRef -> {
-
                     String groupId = docRef.getId();
 
-                    Map<String,Object> member = new HashMap<>();
-                    member.put("role","admin");
+                    // 將建立者加入 members 子集合
+                    Map<String, Object> memberData = new HashMap<>();
+                    memberData.put("name", FirebaseAuth.getInstance().getCurrentUser().getDisplayName());
+                    memberData.put("role", "admin");
+                    memberData.put("joinedAt", FieldValue.serverTimestamp());
+                    memberData.put("status", "online");
 
                     db.collection("groups")
                             .document(groupId)
                             .collection("members")
                             .document(uid)
-                            .set(member);
+                            .set(memberData);
 
-                    Map<String,Object> userData = new HashMap<>();
-                    userData.put("currentGroupId",groupId);
+                    // 更新用戶的 groups 物件
+                    Map<String, Object> newGroup = new HashMap<>();
+                    newGroup.put("groupId", groupId);
+                    newGroup.put("groupName", name);
+                    newGroup.put("joinedAt", FieldValue.serverTimestamp());
+                    newGroup.put("lastRead", FieldValue.serverTimestamp());
+                    newGroup.put("role", "admin");
 
                     db.collection("users")
                             .document(uid)
-                            .set(userData,SetOptions.merge());
+                            .get()
+                            .addOnSuccessListener(userDoc -> {
+                                Map<String, Object> groups = new HashMap<>();
+                                if (userDoc.exists() && userDoc.contains("groups")) {
+                                    Object existingGroups = userDoc.get("groups");
+                                    if (existingGroups instanceof Map) {
+                                        groups = (Map<String, Object>) existingGroups;
+                                    }
+                                }
+                                groups.put(groupId, newGroup);
+
+                                db.collection("users")
+                                        .document(uid)
+                                        .update("groups", groups, "currentGroupId", groupId);
+                            });
 
                     Toast.makeText(this,
-                            "群組建立成功\n加入碼: "+joinCode,
+                            "群組建立成功\n加入碼: " + joinCode,
                             Toast.LENGTH_LONG).show();
                 });
     }
@@ -148,42 +307,82 @@ public class GroupActivity extends AppCompatActivity {
 
     private void leaveGroup(GroupItem group) {
         String groupId = group.getId();
-        WriteBatch batch = db.batch();
 
-        // 1. 如果是群主，刪除群組
+        // 如果是群主，刪除整個群組
         if (uid.equals(group.getOwnerId())) {
-            db.collection("groups").document(groupId).delete();
-            // 此處建議進一步刪除該群組下所有的 members 子文件
-        } else {
-            // 2. 普通成員：從陣列移除 + 刪除成員子文件 (關鍵！)
-            DocumentReference groupRef = db.collection("groups").document(groupId);
-            DocumentReference memberRef = groupRef.collection("members").document(uid);
+            // 先刪除 members 子集合
+            db.collection("groups")
+                    .document(groupId)
+                    .collection("members")
+                    .get()
+                    .addOnSuccessListener(membersSnapshot -> {
+                        WriteBatch batch = db.batch();
 
-            batch.update(groupRef, "members", FieldValue.arrayRemove(uid));
-            batch.delete(memberRef);
+                        for (DocumentSnapshot memberDoc : membersSnapshot) {
+                            batch.delete(memberDoc.getReference());
+                        }
 
-            batch.commit().addOnSuccessListener(v -> {
-                clearCurrentGroupIfMatch(groupId);
-                Toast.makeText(this, "已退出群組", Toast.LENGTH_SHORT).show();
-            });
+                        // 最後刪除群組文件
+                        batch.delete(db.collection("groups").document(groupId));
+
+                        batch.commit().addOnSuccessListener(v -> {
+                            clearCurrentGroupIfMatch(groupId);
+                            Toast.makeText(this, "群組已刪除", Toast.LENGTH_SHORT).show();
+                        });
+                    });
+            return;
         }
+
+        // 普通成員：從 members 子集合中移除自己
+        db.collection("groups")
+                .document(groupId)
+                .collection("members")
+                .document(uid)
+                .delete()
+                .addOnSuccessListener(v -> {
+                    // 更新 memberCount
+                    db.collection("groups")
+                            .document(groupId)
+                            .update("memberCount", FieldValue.increment(-1));
+
+                    // 從用戶的 groups 物件中移除
+                    db.collection("users")
+                            .document(uid)
+                            .get()
+                            .addOnSuccessListener(userDoc -> {
+                                if (userDoc.exists() && userDoc.contains("groups")) {
+                                    Object groupsObj = userDoc.get("groups");
+                                    if (groupsObj instanceof Map) {
+                                        Map<String, Object> groups = (Map<String, Object>) groupsObj;
+                                        groups.remove(groupId);
+
+                                        db.collection("users")
+                                                .document(uid)
+                                                .update("groups", groups);
+                                    }
+                                }
+                            });
+
+                    clearCurrentGroupIfMatch(groupId);
+                    Toast.makeText(this, "已退出群組", Toast.LENGTH_SHORT).show();
+                });
     }
 
-    // 🔥 IMPORTANT: clear currentGroupId when leaving
+    // 🔥 清除 currentGroupId
     private void clearCurrentGroupIfMatch(String groupId) {
-
-        DocumentReference userRef =
-                db.collection("users").document(uid);
-
-        userRef.get().addOnSuccessListener(doc -> {
-
-            if (doc.exists()) {
-                String current = doc.getString("currentGroupId");
-                if (groupId.equals(current)) {
-                    userRef.update("currentGroupId", FieldValue.delete());
-                }
-            }
-        });
+        db.collection("users")
+                .document(uid)
+                .get()
+                .addOnSuccessListener(doc -> {
+                    if (doc.exists()) {
+                        String current = doc.getString("currentGroupId");
+                        if (groupId.equals(current)) {
+                            db.collection("users")
+                                    .document(uid)
+                                    .update("currentGroupId", FieldValue.delete());
+                        }
+                    }
+                });
     }
 
     // ================= JOIN CODE GENERATOR =================
@@ -200,33 +399,6 @@ public class GroupActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        if (groupListener != null) groupListener.remove();
-    }
-
-    // ================= APPROVE USER =================
-    private void approveUser(String groupId, String userId) {
-        // 這裡補上 groupRef 的宣告
-        DocumentReference groupRef = db.collection("groups").document(groupId);
-        DocumentReference userRef = db.collection("users").document(userId);
-        DocumentReference reqRef = groupRef.collection("joinRequests").document(userId);
-        // 這裡是你要用的 memberRef
-        DocumentReference memberRef = groupRef.collection("members").document(userId);
-
-        WriteBatch batch = db.batch();
-
-        // 更新成員陣列
-        batch.update(groupRef, "members", FieldValue.arrayUnion(userId));
-
-        // 🔥 同步寫入成員子集合 (這對於你的安全性規則至關重要)
-        batch.set(memberRef, Collections.singletonMap("role", "member"));
-
-        // 更新使用者的當前群組
-        batch.set(userRef, Collections.singletonMap("currentGroupId", groupId), SetOptions.merge());
-
-        // 刪除請求
-        batch.delete(reqRef);
-
-        batch.commit().addOnSuccessListener(v ->
-                Toast.makeText(this, "批准成功", Toast.LENGTH_SHORT).show());
+        if (userListener != null) userListener.remove();
     }
 }
