@@ -89,32 +89,42 @@ public class GroupActivity extends AppCompatActivity {
         builder.setNegativeButton("取消", null);
         builder.show();
     }
-
     private void createGroup(String name) {
+
         String joinCode = generateJoinCode();
 
         Map<String, Object> g = new HashMap<>();
         g.put("name", name);
         g.put("ownerId", uid);
         g.put("joinCode", joinCode);
-        g.put("members", Collections.singletonList(uid));
         g.put("createdAt", FieldValue.serverTimestamp());
+
+        // 🔥 必須加入 members array
+        g.put("members", Arrays.asList(uid));
 
         db.collection("groups").add(g)
                 .addOnSuccessListener(docRef -> {
 
                     String groupId = docRef.getId();
 
-                    // 🔥 FIX: use set with merge (NOT update)
-                    Map<String, Object> userData = new HashMap<>();
-                    userData.put("currentGroupId", groupId);
+                    Map<String,Object> member = new HashMap<>();
+                    member.put("role","admin");
+
+                    db.collection("groups")
+                            .document(groupId)
+                            .collection("members")
+                            .document(uid)
+                            .set(member);
+
+                    Map<String,Object> userData = new HashMap<>();
+                    userData.put("currentGroupId",groupId);
 
                     db.collection("users")
                             .document(uid)
-                            .set(userData, SetOptions.merge());
+                            .set(userData,SetOptions.merge());
 
                     Toast.makeText(this,
-                            "群組建立成功\n加入碼: " + joinCode,
+                            "群組建立成功\n加入碼: "+joinCode,
                             Toast.LENGTH_LONG).show();
                 });
     }
@@ -137,31 +147,26 @@ public class GroupActivity extends AppCompatActivity {
     }
 
     private void leaveGroup(GroupItem group) {
+        String groupId = group.getId();
+        WriteBatch batch = db.batch();
 
-        // If owner → delete group
+        // 1. 如果是群主，刪除群組
         if (uid.equals(group.getOwnerId())) {
-            db.collection("groups").document(group.getId())
-                    .delete()
-                    .addOnSuccessListener(v -> {
+            db.collection("groups").document(groupId).delete();
+            // 此處建議進一步刪除該群組下所有的 members 子文件
+        } else {
+            // 2. 普通成員：從陣列移除 + 刪除成員子文件 (關鍵！)
+            DocumentReference groupRef = db.collection("groups").document(groupId);
+            DocumentReference memberRef = groupRef.collection("members").document(uid);
 
-                        clearCurrentGroupIfMatch(group.getId());
-                        Toast.makeText(this,
-                                "群組已刪除 (你是群主)",
-                                Toast.LENGTH_SHORT).show();
-                    });
-            return;
+            batch.update(groupRef, "members", FieldValue.arrayRemove(uid));
+            batch.delete(memberRef);
+
+            batch.commit().addOnSuccessListener(v -> {
+                clearCurrentGroupIfMatch(groupId);
+                Toast.makeText(this, "已退出群組", Toast.LENGTH_SHORT).show();
+            });
         }
-
-        // Normal member → remove from members[]
-        db.collection("groups").document(group.getId())
-                .update("members", FieldValue.arrayRemove(uid))
-                .addOnSuccessListener(v -> {
-
-                    clearCurrentGroupIfMatch(group.getId());
-                    Toast.makeText(this,
-                            "已退出群組",
-                            Toast.LENGTH_SHORT).show();
-                });
     }
 
     // 🔥 IMPORTANT: clear currentGroupId when leaving
@@ -200,28 +205,28 @@ public class GroupActivity extends AppCompatActivity {
 
     // ================= APPROVE USER =================
     private void approveUser(String groupId, String userId) {
+        // 這裡補上 groupRef 的宣告
+        DocumentReference groupRef = db.collection("groups").document(groupId);
+        DocumentReference userRef = db.collection("users").document(userId);
+        DocumentReference reqRef = groupRef.collection("joinRequests").document(userId);
+        // 這裡是你要用的 memberRef
+        DocumentReference memberRef = groupRef.collection("members").document(userId);
 
         WriteBatch batch = db.batch();
-        DocumentReference groupRef =
-                db.collection("groups").document(groupId);
-        DocumentReference userRef =
-                db.collection("users").document(userId);
-        DocumentReference reqRef =
-                groupRef.collection("joinRequests").document(userId);
 
-        batch.update(groupRef,
-                "members",
-                FieldValue.arrayUnion(userId));
+        // 更新成員陣列
+        batch.update(groupRef, "members", FieldValue.arrayUnion(userId));
 
-        batch.set(userRef,
-                Collections.singletonMap("currentGroupId", groupId),
-                SetOptions.merge());
+        // 🔥 同步寫入成員子集合 (這對於你的安全性規則至關重要)
+        batch.set(memberRef, Collections.singletonMap("role", "member"));
 
+        // 更新使用者的當前群組
+        batch.set(userRef, Collections.singletonMap("currentGroupId", groupId), SetOptions.merge());
+
+        // 刪除請求
         batch.delete(reqRef);
 
         batch.commit().addOnSuccessListener(v ->
-                Toast.makeText(this,
-                        "批准成功",
-                        Toast.LENGTH_SHORT).show());
+                Toast.makeText(this, "批准成功", Toast.LENGTH_SHORT).show());
     }
 }

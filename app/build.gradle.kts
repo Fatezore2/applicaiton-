@@ -6,7 +6,7 @@ plugins {
 
 android {
     namespace = "com.example.myapplication"
-    compileSdk = 34   // hardcode this
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "com.example.myapplication"
@@ -30,8 +30,6 @@ android {
             )
         }
     }
-
-    compileSdk = 36
 }
 
 dependencies {
@@ -46,11 +44,12 @@ dependencies {
     implementation("com.google.android.gms:play-services-location:21.0.1")
 
     implementation("com.github.bumptech.glide:glide:4.16.0")
-
+    implementation("com.google.android.libraries.places:places:3.3.0")
     implementation(libs.appcompat)
     implementation(libs.material)
     implementation(libs.activity)
     implementation(libs.constraintlayout)
+    implementation(libs.play.services.places)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)

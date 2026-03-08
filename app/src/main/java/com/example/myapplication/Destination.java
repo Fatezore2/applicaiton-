@@ -1,20 +1,24 @@
 package com.example.myapplication;
 
+import java.util.Date;
+
 public class Destination {
 
-    public String name;
+    public String city;
     public double lat;
     public double lng;
-    public String time;
+    public Date dateTime;
     public String createdBy;
 
-    public Destination() {}
+    public Destination() {
+        // Firestore 必须要空构造
+    }
 
-    public Destination(String name, double lat, double lng, String time, String createdBy) {
-        this.name = name;
+    public Destination(String city, double lat, double lng, Date dateTime, String createdBy) {
+        this.city = city;
         this.lat = lat;
         this.lng = lng;
-        this.time = time;
+        this.dateTime = dateTime;
         this.createdBy = createdBy;
     }
 }

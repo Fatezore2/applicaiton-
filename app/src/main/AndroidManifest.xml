@@ -3,7 +3,7 @@
     xmlns:tools="http://schemas.android.com/tools">
 
     <!-- ✅ Permissions MUST be here -->
-    <uses-permission android:name="android.permission.INTERNET"/>
+
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"
         android:maxSdkVersion="28"/>
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
@@ -28,12 +28,15 @@
         <!-- ✅ Google Maps API Key -->
         <meta-data
             android:name="com.google.android.geo.API_KEY"
-            android:value="@string/google_maps_key"/>
+            android:value="AIzaSyBMYaOrERHy-caKmAlEWzvDMwxuE3B305A"/>
+
 
         <activity android:name=".RegisterActivity" />
         <activity android:name=".GroupActivity"/>
+        <activity android:name=".GroupMapActivity"/>
         <activity android:name=".ChatMessageActivity"/>
         <activity android:name=".settingActivity"/>
+        <activity android:name=".DestiationActivitysetting" />
         <activity
             android:name=".HomeActivity"
             android:exported="false" />

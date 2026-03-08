@@ -1,83 +1,64 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:padding="25dp"
-    android:layout_marginBottom="10dp"
-    android:background="#FFFFFF">
+    android:background="#F8FAFF">
 
-    <!-- ================= Chat Area ================= -->
-    <TextView
-        android:id="@+id/tvaddChatTitle"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="新增目的地"
-        android:textStyle="bold"
-        android:textSize="16sp"
-        android:layout_marginBottom="8dp"/>
-
-    <!-- Divider -->
-    <ScrollView
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="200dp"
-        android:background="#F3FBFB"
-        android:padding="8dp">
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="20dp">
 
-        <LinearLayout
-            android:id="@+id/layoutChatMessages"
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="新增 / 編輯 目的地"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            android:layout_marginBottom="16dp"/>
+
+        <!-- MAP PICK -->
+        <fragment
+            android:id="@+id/pickMap"
+            android:name="com.google.android.gms.maps.SupportMapFragment"
+            android:layout_width="match_parent"
+            android:layout_height="220dp" />
+
+        <EditText
+            android:id="@+id/etCity"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical">
+            android:hint="城市名稱"
+            android:layout_marginTop="16dp"/>
 
-            <!-- chat messages dynamically added -->
+        <TextView
+            android:id="@+id/tvDateTime"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="選擇日期時間"
+            android:padding="12dp"
+            android:background="@android:drawable/editbox_background"
+            android:layout_marginTop="16dp"/>
 
-        </LinearLayout>
-    </ScrollView>
+        <Button
+            android:id="@+id/btnSave"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:text="儲存"
+            android:background="#2EC4C1"
+            android:textColor="@android:color/white"
+            android:layout_marginTop="20dp"/>
 
-    <View
-        android:layout_width="match_parent"
-        android:layout_height="1dp"
-        android:layout_marginVertical="12dp"
-        android:background="#E0E0E0"/>
+        <Button
+            android:id="@+id/btnDelete"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:text="刪除"
+            android:background="#FF5A5F"
+            android:textColor="@android:color/white"
+            android:layout_marginTop="10dp"
+            android:visibility="gone"/>
 
-    <!-- ================= Add Destination ================= -->
-    <TextView
-        android:id="@+id/tvAddDestinationTitle"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="新增目的地"
-        android:textStyle="bold"
-        android:textSize="15sp"/>
-
-    <EditText
-        android:id="@+id/etDestinationName"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:hint="目的地名稱 (例：艾菲爾鐵塔)"
-        android:layout_marginTop="8dp"/>
-
-    <EditText
-        android:id="@+id/etDestinationTime"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:hint="集合時間 (例：17:30)"
-        android:layout_marginTop="8dp"/>
-
-    <Button
-        android:id="@+id/btnSendDestination"
-        android:layout_width="match_parent"
-        android:layout_height="48dp"
-        android:layout_marginTop="12dp"
-        android:text="送出目的地"
-        android:textColor="@android:color/white"
-        android:background="#2EC4C1"
-        />
-
-    <org.osmdroid.views.MapView
-        android:id="@+id/mapPick"
-        android:layout_width="match_parent"
-        android:layout_height="200dp"/>
-
-
-</LinearLayout>
+    </LinearLayout>
+</ScrollView>
