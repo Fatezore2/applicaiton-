@@ -52,5 +52,10 @@
             </intent-filter>
         </activity>
 
+        <activity
+            android:name=".HotelSearchActivity"
+            android:exported="false"
+            android:parentActivityName=".HomeActivity" />
+
     </application>
 </manifest>

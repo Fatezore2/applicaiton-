@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- 陰影層 -->
+    <item>
+        <shape>
+            <solid android:color="#20000000" />
+            <corners android:radius="24dp" />
+        </shape>
+    </item>
+
+    <!-- 按鈕主體 -->
+    <item android:bottom="2dp">
+        <selector xmlns:android="http://schemas.android.com/apk/res/android">
+            <item android:state_pressed="true">
+                <shape>
+                    <solid android:color="#1E8F8C" />
+                    <corners android:radius="24dp" />
+                </shape>
+            </item>
+            <item>
+                <shape>
+                    <solid android:color="#2CC5C2" />
+                    <corners android:radius="24dp" />
+                </shape>
+            </item>
+        </selector>
+    </item>
+</layer-list>

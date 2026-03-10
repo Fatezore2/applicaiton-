@@ -2,6 +2,7 @@
 <androidx.constraintlayout.widget.ConstraintLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/homeRoot"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -37,7 +38,7 @@
             android:layout_height="40dp"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:padding="8dp"
-            android:src="@drawable/gear"
+            android:src="@drawable/ic_my_location"
             android:tint="@android:color/black"/>
 
         <LinearLayout
@@ -49,10 +50,10 @@
             android:orientation="vertical">
 
             <TextView
-                android:id="@+id/tvAppName"
+                android:id="@+id/tvTripTitle"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Trip"
+                android:text="尚未加入群組"
                 android:textSize="18sp"
                 android:textStyle="bold"/>
 
@@ -103,13 +104,15 @@
                 android:textOff="👥 All Members"/>
 
             <TextView
-                android:id="@+id/tvTripTitle"
-                android:layout_width="wrap_content"
+                android:id="@+id/DESwether"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="16dp"
-                android:text="尚未加入群組"
-                android:textSize="16sp"
-                android:textStyle="bold"/>
+                android:layout_weight="1"
+                android:textSize="14sp"
+                android:textStyle="bold"
+                android:text="Loading weather..." />
+
+
         </LinearLayout>
     </androidx.cardview.widget.CardView>
 
@@ -156,6 +159,7 @@
                 android:text="➕ 新增目的地"
                 android:textAllCaps="false"
                 android:textColor="@android:color/white"/>
+
         </LinearLayout>
     </androidx.cardview.widget.CardView>
 
@@ -198,9 +202,37 @@
                     android:layout_marginStart="8dp"
                     android:layout_weight="1"
                     android:text="加入群組"/>
+
+                <Button
+                    android:id="@+id/btnHotelSearch"
+                    android:layout_width="0dp"
+                    android:layout_height="48dp"
+                    android:layout_marginStart="8dp"
+                    android:layout_weight="1"
+                    android:backgroundTint="#2EC4C1"
+                    android:text="🏨飯店"
+                    android:textColor="@android:color/white" />
+
             </LinearLayout>
+
+
+
 
         </LinearLayout>
     </androidx.cardview.widget.CardView>
+
+
+    <ImageView
+        android:id="@+id/wether"
+        android:layout_width="44dp"
+        android:layout_height="44dp"
+        android:layout_marginTop="108dp"
+        android:layout_marginEnd="16dp"
+        android:background="@drawable/white_circle_shadow"
+        android:padding="8dp"
+        android:src="@drawable/ic_weather_sunny_cloudy"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/layoutAppBar"
+        app:tint="@android:color/black" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

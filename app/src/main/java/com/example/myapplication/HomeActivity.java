@@ -16,6 +16,7 @@ import android.text.TextUtils;
 import android.util.Log;
 import android.os.Handler;
 import android.os.Looper;
+import android.view.View;
 import android.widget.*;
 import java.util.ArrayList;
 import java.util.Date;
@@ -43,11 +44,14 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
     private LocationCallback locationCallback;
     private FirebaseAuth auth;
     private FirebaseFirestore db;
+    private ImageView wether;
     private ListenerRegistration destinationListener;
     private Map<String, Marker> destinationMarkers = new HashMap<>();
     private List<DocumentSnapshot> destinationDocs = new ArrayList<>();
     private Handler countdownHandler = new Handler(Looper.getMainLooper());
     private Runnable countdownRunnable;
+    private TextView DESwether;
+
     private List<DestinationItem> destinationList = new ArrayList<>();
     private Handler timeHandler = new Handler();
     private Runnable timeRunnable;
@@ -57,6 +61,7 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
     private Button btnOpenGroup, btnJoinGroup, btnMoreOptions, btnMyLocation;
     private ImageView setting,locame;
     private GoogleMap mMap;
+    private boolean showMyLocation = true;
     private String currentGroupId;
     private String uid;
     private Map<String, Marker> memberMarkers = new HashMap<>();
@@ -79,7 +84,9 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
         setupListeners();
         checkLocationPermission();
         loadCurrentGroup();
+
     }
+
     @SuppressLint("MissingPermission")
     private void startLocationUpdates() {
 
@@ -169,7 +176,7 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
         );
     }
     private void bindViews() {
-
+        wether = findViewById(R.id.wether);
         tvTripTitle = findViewById(R.id.tvTripTitle);
         tvDestinationTitle = findViewById(R.id.tvDestinationTitle);
         btnOpenGroup = findViewById(R.id.btnOpenGroup);
@@ -178,12 +185,20 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
         setting = findViewById(R.id.setting);
         locame = findViewById(R.id.locame);
         ToggleButton toggleOnline = findViewById(R.id.toggleOnline);
+        DESwether = findViewById(R.id.DESwether);
+        ToggleButton toggleMyLocation = findViewById(R.id.toggleOnline);
 
-        toggleOnline.setOnCheckedChangeListener((buttonView, isChecked) -> {
-            showOnlineOnly = isChecked;
+        toggleMyLocation.setOnCheckedChangeListener((buttonView, isChecked) -> {
 
-            if (currentGroupId != null) {
-                listenToGroupMembers(currentGroupId);
+            showMyLocation = isChecked;
+
+            if (mMap == null) return;
+
+            if (ContextCompat.checkSelfPermission(this,
+                    Manifest.permission.ACCESS_FINE_LOCATION)
+                    == PackageManager.PERMISSION_GRANTED) {
+
+                mMap.setMyLocationEnabled(showMyLocation);
             }
         });
         SupportMapFragment mapFragment =
@@ -194,7 +209,97 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
             mapFragment.getMapAsync(this);
         }
     }
+    private void loadDestinationWeather() {
 
+        if (destinationDocs.isEmpty()) {
+            DESwether.setText("No destinations");
+            return;
+        }
+
+        new Thread(() -> {
+
+            try {
+
+                StringBuilder result = new StringBuilder();
+
+                int limit = Math.min(3, destinationDocs.size());
+
+                for (int i = 0; i < limit; i++) {
+
+                    DocumentSnapshot doc = destinationDocs.get(i);
+
+                    String city = doc.getString("city");
+                    Double lat = doc.getDouble("lat");
+                    Double lng = doc.getDouble("lng");
+
+                    if (lat == null || lng == null) continue;
+
+                    String url =
+                            "https://api.open-meteo.com/v1/forecast?latitude="
+                                    + lat +
+                                    "&longitude=" + lng +
+                                    "&daily=weathercode&timezone=auto";
+
+                    java.net.URL u = new java.net.URL(url);
+
+                    java.net.HttpURLConnection conn =
+                            (java.net.HttpURLConnection) u.openConnection();
+
+                    java.io.BufferedReader reader =
+                            new java.io.BufferedReader(
+                                    new java.io.InputStreamReader(conn.getInputStream())
+                            );
+
+                    StringBuilder json = new StringBuilder();
+                    String line;
+
+                    while ((line = reader.readLine()) != null) {
+                        json.append(line);
+                    }
+
+                    reader.close();
+
+                    org.json.JSONObject obj =
+                            new org.json.JSONObject(json.toString());
+
+                    int code =
+                            obj.getJSONObject("daily")
+                                    .getJSONArray("weathercode")
+                                    .getInt(0);
+
+                    String emoji = getWeatherEmoji(code);
+
+                    result.append(emoji)
+                            .append(" ")
+                            .append(city);
+
+                    if (i < limit - 1) {
+                        result.append("  →  ");
+                    }
+                }
+
+                runOnUiThread(() ->
+                        DESwether.setText(result.toString())
+                );
+
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+        }).start();
+    }
+    private String getWeatherEmoji(int code) {
+
+        if (code == 0) return "☀";
+        if (code == 1 || code == 2) return "🌤";
+        if (code == 3) return "☁";
+        if (code <= 48) return "🌫";
+        if (code <= 67) return "🌧";
+        if (code <= 77) return "❄";
+        if (code <= 99) return "⛈";
+
+        return "☁";
+    }
     private void setupListeners() {
         locame.setOnClickListener(v -> moveToMyLocation());
         btnOpenGroup.setOnClickListener(v ->
@@ -211,6 +316,144 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
             }
             startActivity(new Intent(this, DestiationActivitysetting.class));
         });
+
+        // ===== 新增：飯店搜尋按鈕點擊事件 =====
+        Button btnHotelSearch = findViewById(R.id.btnHotelSearch);
+        btnHotelSearch.setOnClickListener(v -> {
+            // 開啟飯店搜尋 Activity
+            Intent intent = new Intent(HomeActivity.this, HotelSearchActivity.class);
+
+            // 如果有地圖中心點，可以傳過去
+            if (mMap != null) {
+                LatLng center = mMap.getCameraPosition().target;
+                intent.putExtra("latitude", center.latitude);
+                intent.putExtra("longitude", center.longitude);
+            }
+
+            startActivity(intent);
+        });
+        wether.setOnClickListener(v -> {
+
+            if (destinationDocs.isEmpty()) {
+                toast("No destination selected");
+                return;
+            }
+
+            DocumentSnapshot doc = destinationDocs.get(0);
+
+            Double lat = doc.getDouble("lat");
+            Double lng = doc.getDouble("lng");
+            String city = doc.getString("city");
+
+            if (lat != null && lng != null) {
+                showWeatherDialog(lat, lng, city);
+            }
+
+        });
+    }
+    private void showWeatherDialog(double lat, double lng, String city) {
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+
+        View view = getLayoutInflater().inflate(
+                R.layout.dialog_weather,
+                null
+        );
+
+        LinearLayout container =
+                view.findViewById(R.id.weatherContainer);
+
+        builder.setTitle("7 Day Weather - " + city);
+        builder.setView(view);
+        builder.setPositiveButton("Close", null);
+
+        builder.show();
+
+        loadWeatherData(lat, lng, container);
+    }
+    private void loadWeatherData(double lat, double lng, LinearLayout container) {
+
+        String url =
+                "https://api.open-meteo.com/v1/forecast?latitude="
+                        + lat +
+                        "&longitude=" + lng +
+                        "&daily=weathercode,temperature_2m_max&timezone=auto";
+
+        new Thread(() -> {
+
+            try {
+
+                java.net.URL u = new java.net.URL(url);
+
+                java.net.HttpURLConnection conn =
+                        (java.net.HttpURLConnection) u.openConnection();
+
+                java.io.BufferedReader reader =
+                        new java.io.BufferedReader(
+                                new java.io.InputStreamReader(
+                                        conn.getInputStream()
+                                )
+                        );
+
+                StringBuilder json = new StringBuilder();
+                String line;
+
+                while ((line = reader.readLine()) != null) {
+                    json.append(line);
+                }
+
+                reader.close();
+
+                org.json.JSONObject obj =
+                        new org.json.JSONObject(json.toString());
+
+                org.json.JSONObject daily =
+                        obj.getJSONObject("daily");
+
+                org.json.JSONArray temps =
+                        daily.getJSONArray("temperature_2m_max");
+
+                org.json.JSONArray times =
+                        daily.getJSONArray("time");
+
+                runOnUiThread(() -> {
+
+                    for (int i = 0; i < temps.length(); i++) {
+
+                        try {
+
+                            View item =
+                                    getLayoutInflater().inflate(
+                                            R.layout.item_weather,
+                                            container,
+                                            false
+                                    );
+
+                            TextView day =
+                                    item.findViewById(R.id.dayText);
+
+                            TextView temp =
+                                    item.findViewById(R.id.tempText);
+
+                            TextView weather =
+                                    item.findViewById(R.id.weatherText);
+
+                            day.setText(times.getString(i));
+                            temp.setText(temps.getDouble(i) + "°C");
+                            weather.setText("Forecast");
+
+                            container.addView(item);
+
+                        } catch (Exception ignored) {}
+                    }
+
+                });
+
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+        }).start();
     }
     @SuppressLint("MissingPermission")
     private void moveToMyLocation() {
@@ -385,6 +628,7 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
         listenToGroupMembers(groupId);
         listenToDestinations(groupId);   // 🔥 NEW
 
+
         if (groupListener != null) groupListener.remove();
 
         groupListener = db.collection("groups")
@@ -416,11 +660,13 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
                 .addSnapshotListener((snap, e) -> {
 
                     if (snap == null || mMap == null) return;
-
                     destinationDocs.clear();
                     destinationDocs.addAll(snap.getDocuments());
 
                     updateDestinationMarkers();
+
+                    loadDestinationWeather();   // ⭐ 加這行
+
                     startCountdownUpdater();
                 });
     }
@@ -621,24 +867,25 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
 
             mMap.setMyLocationEnabled(true);
 
-            fusedLocationClient.getLastLocation()
-                    .addOnSuccessListener(location -> {
+            fusedLocationClient.getCurrentLocation(
+                    Priority.PRIORITY_HIGH_ACCURACY,
+                    null
+            ).addOnSuccessListener(location -> {
 
-                        if (location != null) {
+                if (location != null) {
 
-                            LatLng myLocation = new LatLng(
-                                    location.getLatitude(),
-                                    location.getLongitude()
-                            );
+                    LatLng myLocation = new LatLng(
+                            location.getLatitude(),
+                            location.getLongitude()
+                    );
 
-                            mMap.moveCamera(
-                                    CameraUpdateFactory.newLatLngZoom(myLocation, 16f)
-                            );
-                        }
-                    });
+                    mMap.moveCamera(
+                            CameraUpdateFactory.newLatLngZoom(myLocation, 16f)
+                    );
+                }
+            });
         }
     }
-
     private void toast(String s) {
         Toast.makeText(this, s, Toast.LENGTH_SHORT).show();
     }

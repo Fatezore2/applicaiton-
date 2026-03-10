@@ -1,0 +1,390 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#F5F5F5"
+    android:padding="16dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <!-- 標題 -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="🏨 搜尋飯店"
+            android:textSize="24sp"
+            android:textStyle="bold"
+            android:textColor="#0C344E"
+            android:layout_marginBottom="24dp" />
+
+        <!-- 目的地輸入 -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="目的地"
+            android:textSize="14sp"
+            android:textColor="#6B7B86"
+            android:layout_marginBottom="4dp" />
+
+        <EditText
+            android:id="@+id/etDestination"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="例如：香港、東京、台北"
+            android:padding="16dp"
+            android:background="@drawable/edit_text_bg"
+            android:textSize="16sp"
+            android:inputType="text"
+            android:maxLines="1"
+            android:layout_marginBottom="16dp" />
+
+        <!-- 日期範圍 -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="日期範圍"
+            android:textSize="14sp"
+            android:textColor="#6B7B86"
+            android:layout_marginBottom="8dp" />
+
+        <LinearLayout
+            android:id="@+id/llDateRange"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:background="@drawable/card_bg"
+            android:padding="16dp"
+            android:layout_marginBottom="16dp">
+
+            <!-- 入住日期 -->
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="入住"
+                    android:textSize="12sp"
+                    android:textColor="#6B7B86" />
+
+                <DatePicker
+                    android:id="@+id/datePickerCheckIn"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:datePickerMode="spinner"
+                    android:calendarViewShown="false" />
+            </LinearLayout>
+
+            <!-- 退房日期 -->
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical"
+                android:layout_marginStart="8dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="退房"
+                    android:textSize="12sp"
+                    android:textColor="#6B7B86" />
+
+                <DatePicker
+                    android:id="@+id/datePickerCheckOut"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:datePickerMode="spinner"
+                    android:calendarViewShown="false" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <!-- 旅客人數 -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="旅客人數"
+            android:textSize="14sp"
+            android:textColor="#6B7B86"
+            android:layout_marginBottom="8dp" />
+
+        <LinearLayout
+            android:id="@+id/llGuests"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:background="@drawable/card_bg"
+            android:padding="16dp"
+            android:layout_marginBottom="16dp">
+
+            <!-- 成人人數 -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:layout_marginBottom="12dp">
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="👤 成人"
+                        android:textSize="16sp"
+                        android:textColor="#0C344E"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="18歲以上"
+                        android:textSize="12sp"
+                        android:textColor="#6B7B86" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center">
+
+                    <Button
+                        android:id="@+id/btnAdultMinus"
+                        android:layout_width="48dp"
+                        android:layout_height="48dp"
+                        android:text="\u2212"
+                        android:textSize="28sp"
+                        android:textStyle="bold"
+                        android:textColor="#FFFFFF"
+                        android:background="@drawable/button_counter_pressed"
+                        android:gravity="center"
+                        android:includeFontPadding="false"
+                        android:padding="0dp"
+                        android:elevation="2dp" />
+
+                    <TextView
+                        android:id="@+id/tvAdultCount"
+                        android:layout_width="50dp"
+                        android:layout_height="wrap_content"
+                        android:text="2"
+                        android:textSize="22sp"
+                        android:textStyle="bold"
+                        android:textColor="#0C344E"
+                        android:gravity="center"
+                        android:layout_marginHorizontal="16dp" />
+
+                    <Button
+                        android:id="@+id/btnAdultPlus"
+                        android:layout_width="48dp"
+                        android:layout_height="48dp"
+                        android:text="+"
+                        android:textSize="28sp"
+                        android:textStyle="bold"
+                        android:textColor="#FFFFFF"
+                        android:background="@drawable/button_counter_pressed"
+                        android:gravity="center"
+                        android:includeFontPadding="false"
+                        android:padding="0dp"
+                        android:elevation="2dp" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <!-- 兒童人數 -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical">
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="🧒 兒童"
+                        android:textSize="16sp"
+                        android:textColor="#0C344E"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="0-17歲"
+                        android:textSize="12sp"
+                        android:textColor="#6B7B86" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center">
+
+                    <Button
+                        android:id="@+id/btnChildMinus"
+                        android:layout_width="48dp"
+                        android:layout_height="48dp"
+                        android:text="\u2212"
+                        android:textSize="28sp"
+                        android:textStyle="bold"
+                        android:textColor="#FFFFFF"
+                        android:background="@drawable/button_counter_pressed"
+                        android:gravity="center"
+                        android:includeFontPadding="false"
+                        android:padding="0dp"
+                        android:elevation="2dp" />
+
+                    <TextView
+                        android:id="@+id/tvChildCount"
+                        android:layout_width="50dp"
+                        android:layout_height="wrap_content"
+                        android:text="0"
+                        android:textSize="22sp"
+                        android:textStyle="bold"
+                        android:textColor="#0C344E"
+                        android:gravity="center"
+                        android:layout_marginHorizontal="16dp" />
+
+                    <Button
+                        android:id="@+id/btnChildPlus"
+                        android:layout_width="48dp"
+                        android:layout_height="48dp"
+                        android:text="+"
+                        android:textSize="28sp"
+                        android:textStyle="bold"
+                        android:textColor="#FFFFFF"
+                        android:background="@drawable/button_counter_pressed"
+                        android:gravity="center"
+                        android:includeFontPadding="false"
+                        android:padding="0dp"
+                        android:elevation="2dp" />
+                </LinearLayout>
+            </LinearLayout>
+        </LinearLayout>
+
+        <!-- 房間數 -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="房間數"
+            android:textSize="14sp"
+            android:textColor="#6B7B86"
+            android:layout_marginBottom="8dp" />
+
+        <LinearLayout
+            android:id="@+id/llRooms"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:background="@drawable/card_bg"
+            android:padding="16dp"
+            android:layout_marginBottom="24dp">
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="🏨 房間"
+                    android:textSize="16sp"
+                    android:textColor="#0C344E"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="每間可住2-4人"
+                    android:textSize="12sp"
+                    android:textColor="#6B7B86" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center">
+
+                <Button
+                    android:id="@+id/btnRoomMinus"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:text="\u2212"
+                    android:textSize="28sp"
+                    android:textStyle="bold"
+                    android:textColor="#FFFFFF"
+                    android:background="@drawable/button_counter_pressed"
+                    android:gravity="center"
+                    android:includeFontPadding="false"
+                    android:padding="0dp"
+                    android:elevation="2dp" />
+
+                <TextView
+                    android:id="@+id/tvRoomCount"
+                    android:layout_width="50dp"
+                    android:layout_height="wrap_content"
+                    android:text="1"
+                    android:textSize="22sp"
+                    android:textStyle="bold"
+                    android:textColor="#0C344E"
+                    android:gravity="center"
+                    android:layout_marginHorizontal="16dp" />
+
+                <Button
+                    android:id="@+id/btnRoomPlus"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:text="+"
+                    android:textSize="28sp"
+                    android:textStyle="bold"
+                    android:textColor="#FFFFFF"
+                    android:background="@drawable/button_counter_pressed"
+                    android:gravity="center"
+                    android:includeFontPadding="false"
+                    android:padding="0dp"
+                    android:elevation="2dp" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <!-- 搜尋按鈕 -->
+        <Button
+            android:id="@+id/btnSearch"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="搜尋飯店"
+            android:textSize="18sp"
+            android:textColor="#FFFFFF"
+            android:background="@drawable/button_primary"
+            android:padding="16dp"
+            android:layout_marginBottom="16dp" />
+
+        <!-- 說明文字 -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="🔍 將會開啟 Booking.com App\n（若未安裝則開啟網頁版）"
+            android:textSize="12sp"
+            android:textColor="#6B7B86"
+            android:gravity="center" />
+
+    </LinearLayout>
+</ScrollView>

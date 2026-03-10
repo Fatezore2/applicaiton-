@@ -271,7 +271,6 @@ public class ItemDestinationActivity extends AppCompatActivity implements OnMapR
 
         startActivityForResult(intent, AUTOCOMPLETE_REQUEST_CODE);
     }
-
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
 
@@ -283,35 +282,32 @@ public class ItemDestinationActivity extends AppCompatActivity implements OnMapR
 
                 Place place = Autocomplete.getPlaceFromIntent(data);
 
-                String name = place.getName();
-                String address = place.getAddress();
+                LatLng latLng = place.getLatLng();
 
-                if (address != null) {
-                    etCity.setText(address);
-                } else {
-                    etCity.setText(name);
-                }
+                if (latLng != null) {
 
-                if (place.getLatLng() != null) {
-
-                    pickedLat = place.getLatLng().latitude;
-                    pickedLng = place.getLatLng().longitude;
+                    pickedLat = latLng.latitude;
+                    pickedLng = latLng.longitude;
                     locationSelected = true;
 
-                    updateMarker(place.getLatLng());
+                    updateMarker(latLng);
+
+                    // ⭐ 用 Geocoder 取得真正的城市名稱
+                    fillCityFromLocation(pickedLat, pickedLng);
                 }
 
             } else if (resultCode == AutocompleteActivity.RESULT_ERROR) {
 
                 Status status = Autocomplete.getStatusFromIntent(data);
 
-                Toast.makeText(this,
+                Toast.makeText(
+                        this,
                         status.getStatusMessage(),
-                        Toast.LENGTH_LONG).show();
+                        Toast.LENGTH_LONG
+                ).show();
             }
         }
     }
-
     private void updateMarker(LatLng latLng) {
 
         if (mMap == null) return;
