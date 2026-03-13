@@ -1,0 +1,51 @@
+com.example.myapplication.app-core-ktx-1.16.0-0 C:\Users\jacky\.gradle\caches\8.13\transforms\086befd036f0e1c18b5875d481c0b223\transformed\core-ktx-1.16.0\res
+com.example.myapplication.app-drawerlayout-1.1.1-1 C:\Users\jacky\.gradle\caches\8.13\transforms\30a3302c3b6df7a14b5affe09d1a70b0\transformed\drawerlayout-1.1.1\res
+com.example.myapplication.app-firebase-common-21.0.0-2 C:\Users\jacky\.gradle\caches\8.13\transforms\32776d2f171bf96fe7de9a1b16e52141\transformed\firebase-common-21.0.0\res
+com.example.myapplication.app-appcompat-resources-1.7.1-3 C:\Users\jacky\.gradle\caches\8.13\transforms\37d3f69054836af832a2851155d67dc6\transformed\appcompat-resources-1.7.1\res
+com.example.myapplication.app-viewpager2-1.0.0-4 C:\Users\jacky\.gradle\caches\8.13\transforms\395d36e86df48e2439a4540da4dc636a\transformed\viewpager2-1.0.0\res
+com.example.myapplication.app-play-services-auth-20.7.0-5 C:\Users\jacky\.gradle\caches\8.13\transforms\3b7121db6a4342b8cd88c06c68f05bf3\transformed\play-services-auth-20.7.0\res
+com.example.myapplication.app-constraintlayout-2.2.1-6 C:\Users\jacky\.gradle\caches\8.13\transforms\3fb4384038d17aaa25e326624b4c71c6\transformed\constraintlayout-2.2.1\res
+com.example.myapplication.app-activity-1.12.3-7 C:\Users\jacky\.gradle\caches\8.13\transforms\40474f5e0e4189fe928aa2956aa75188\transformed\activity-1.12.3\res
+com.example.myapplication.app-annotation-experimental-1.4.1-8 C:\Users\jacky\.gradle\caches\8.13\transforms\41b2f5985e014ad1e5977e058f0ee9a9\transformed\annotation-experimental-1.4.1\res
+com.example.myapplication.app-recyclerview-1.2.1-9 C:\Users\jacky\.gradle\caches\8.13\transforms\4f9ae8c6395b80755b7c9f89e80b951a\transformed\recyclerview-1.2.1\res
+com.example.myapplication.app-startup-runtime-1.1.1-10 C:\Users\jacky\.gradle\caches\8.13\transforms\50586b385635f2530ed2d4f2787655c3\transformed\startup-runtime-1.1.1\res
+com.example.myapplication.app-dynamicanimation-1.1.0-11 C:\Users\jacky\.gradle\caches\8.13\transforms\546d42d4cbabcd0bce00aaac40d63b47\transformed\dynamicanimation-1.1.0\res
+com.example.myapplication.app-core-1.16.0-12 C:\Users\jacky\.gradle\caches\8.13\transforms\5c3d8b3ef843dcbb752cec6f45e9cd76\transformed\core-1.16.0\res
+com.example.myapplication.app-appcompat-1.7.1-13 C:\Users\jacky\.gradle\caches\8.13\transforms\5ca23c9b08d03d3e757eac235c4679e6\transformed\appcompat-1.7.1\res
+com.example.myapplication.app-material-1.13.0-14 C:\Users\jacky\.gradle\caches\8.13\transforms\5f56c0a0166a438b345fec0a6703de79\transformed\material-1.13.0\res
+com.example.myapplication.app-core-viewtree-1.0.0-15 C:\Users\jacky\.gradle\caches\8.13\transforms\66d887ce15eecdd1ece5bf18601278c0\transformed\core-viewtree-1.0.0\res
+com.example.myapplication.app-navigationevent-16 C:\Users\jacky\.gradle\caches\8.13\transforms\6891b0f258187e0350c7c6b374093c0a\transformed\navigationevent\res
+com.example.myapplication.app-play-services-maps-18.2.0-17 C:\Users\jacky\.gradle\caches\8.13\transforms\6d444be32a268d43a0591ca0c8042947\transformed\play-services-maps-18.2.0\res
+com.example.myapplication.app-glide-4.16.0-18 C:\Users\jacky\.gradle\caches\8.13\transforms\6dee18b1c021fa2d9c94b7b6c1f9fd26\transformed\glide-4.16.0\res
+com.example.myapplication.app-tracing-1.2.0-19 C:\Users\jacky\.gradle\caches\8.13\transforms\730b0fc269feaa8aa2f813c745d2c60d\transformed\tracing-1.2.0\res
+com.example.myapplication.app-fragment-1.5.4-20 C:\Users\jacky\.gradle\caches\8.13\transforms\73b6b678cb66f1267dcfe40b51befc1c\transformed\fragment-1.5.4\res
+com.example.myapplication.app-lifecycle-process-2.6.2-21 C:\Users\jacky\.gradle\caches\8.13\transforms\843d6a35ffc2bc8c01339ce5682eb898\transformed\lifecycle-process-2.6.2\res
+com.example.myapplication.app-play-services-base-18.1.0-22 C:\Users\jacky\.gradle\caches\8.13\transforms\874b2ef7f59308bcbc7e26fd6964c7a5\transformed\play-services-base-18.1.0\res
+com.example.myapplication.app-coordinatorlayout-1.1.0-23 C:\Users\jacky\.gradle\caches\8.13\transforms\8b062d05b676bafab0e991f39e900589\transformed\coordinatorlayout-1.1.0\res
+com.example.myapplication.app-profileinstaller-1.4.0-24 C:\Users\jacky\.gradle\caches\8.13\transforms\8bf21c8d513ad3af507a83fdcf7c5328\transformed\profileinstaller-1.4.0\res
+com.example.myapplication.app-lifecycle-livedata-2.6.2-25 C:\Users\jacky\.gradle\caches\8.13\transforms\9a2a240114b37305d63364d9067fd714\transformed\lifecycle-livedata-2.6.2\res
+com.example.myapplication.app-credentials-1.2.0-rc01-26 C:\Users\jacky\.gradle\caches\8.13\transforms\a81e8665a6e6090dfc8cec68aacff8a2\transformed\credentials-1.2.0-rc01\res
+com.example.myapplication.app-emoji2-views-helper-1.3.0-27 C:\Users\jacky\.gradle\caches\8.13\transforms\abcab5aa6dd43234a1d9e83ffae422b0\transformed\emoji2-views-helper-1.3.0\res
+com.example.myapplication.app-emoji2-1.3.0-28 C:\Users\jacky\.gradle\caches\8.13\transforms\ae0b6a5fb6385199f572971af0b71c11\transformed\emoji2-1.3.0\res
+com.example.myapplication.app-play-services-basement-18.3.0-29 C:\Users\jacky\.gradle\caches\8.13\transforms\afbd26f210e799c88a6d73b63c8e6ac6\transformed\play-services-basement-18.3.0\res
+com.example.myapplication.app-credentials-play-services-auth-1.2.0-rc01-30 C:\Users\jacky\.gradle\caches\8.13\transforms\bd089dba96413e53012155f39f58b0c4\transformed\credentials-play-services-auth-1.2.0-rc01\res
+com.example.myapplication.app-core-runtime-2.2.0-31 C:\Users\jacky\.gradle\caches\8.13\transforms\c290310542a5dc4406b031af848c474b\transformed\core-runtime-2.2.0\res
+com.example.myapplication.app-transition-1.5.0-32 C:\Users\jacky\.gradle\caches\8.13\transforms\c698da5b0527f0dfdc69210bc05ed58d\transformed\transition-1.5.0\res
+com.example.myapplication.app-graphics-shapes-release-33 C:\Users\jacky\.gradle\caches\8.13\transforms\d75f7d755d7e043c455ccc9c8a697606\transformed\graphics-shapes-release\res
+com.example.myapplication.app-lifecycle-viewmodel-savedstate-2.6.2-34 C:\Users\jacky\.gradle\caches\8.13\transforms\df8b88bdd2dce347b6f0fcdf192226c6\transformed\lifecycle-viewmodel-savedstate-2.6.2\res
+com.example.myapplication.app-osmdroid-android-6.1.20-35 C:\Users\jacky\.gradle\caches\8.13\transforms\e5161a79cac0eb6d572741620cb5b936\transformed\osmdroid-android-6.1.20\res
+com.example.myapplication.app-browser-1.4.0-36 C:\Users\jacky\.gradle\caches\8.13\transforms\e6758ff3aea85a6513df07ec8f3a6a2b\transformed\browser-1.4.0\res
+com.example.myapplication.app-cardview-1.0.0-37 C:\Users\jacky\.gradle\caches\8.13\transforms\e6ecd597b979fc75af3dcef2320b7396\transformed\cardview-1.0.0\res
+com.example.myapplication.app-lifecycle-runtime-2.6.2-38 C:\Users\jacky\.gradle\caches\8.13\transforms\e749de4a6849411142defb06c622865b\transformed\lifecycle-runtime-2.6.2\res
+com.example.myapplication.app-lifecycle-viewmodel-2.6.2-39 C:\Users\jacky\.gradle\caches\8.13\transforms\eef9be67d5cf498a1e15cd3b0ceec021\transformed\lifecycle-viewmodel-2.6.2\res
+com.example.myapplication.app-savedstate-1.2.1-40 C:\Users\jacky\.gradle\caches\8.13\transforms\f2a6e91936522179099b2664c24d9596\transformed\savedstate-1.2.1\res
+com.example.myapplication.app-lifecycle-livedata-core-2.6.2-41 C:\Users\jacky\.gradle\caches\8.13\transforms\f72941d4d7c377c8c4ebdf0c413c0181\transformed\lifecycle-livedata-core-2.6.2\res
+com.example.myapplication.app-pngs-42 C:\Users\jacky\Desktop\vtc\FYP\android app\project\app\build\generated\res\pngs\debug
+com.example.myapplication.app-res-43 C:\Users\jacky\Desktop\vtc\FYP\android app\project\app\build\generated\res\processDebugGoogleServices
+com.example.myapplication.app-resValues-44 C:\Users\jacky\Desktop\vtc\FYP\android app\project\app\build\generated\res\resValues\debug
+com.example.myapplication.app-updated_navigation_xml-45 C:\Users\jacky\Desktop\vtc\FYP\android app\project\app\build\generated\updated_navigation_xml\debug
+com.example.myapplication.app-packageDebugResources-46 C:\Users\jacky\Desktop\vtc\FYP\android app\project\app\build\intermediates\incremental\debug\packageDebugResources\merged.dir
+com.example.myapplication.app-packageDebugResources-47 C:\Users\jacky\Desktop\vtc\FYP\android app\project\app\build\intermediates\incremental\debug\packageDebugResources\stripped.dir
+com.example.myapplication.app-debug-48 C:\Users\jacky\Desktop\vtc\FYP\android app\project\app\build\intermediates\merged_res\debug\mergeDebugResources
+com.example.myapplication.app-debug-49 C:\Users\jacky\Desktop\vtc\FYP\android app\project\app\src\debug\res
+com.example.myapplication.app-main-50 C:\Users\jacky\Desktop\vtc\FYP\android app\project\app\src\main\res

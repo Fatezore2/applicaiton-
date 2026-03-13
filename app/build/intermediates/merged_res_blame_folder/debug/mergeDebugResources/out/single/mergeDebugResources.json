@@ -1,0 +1,134 @@
+[
+    {
+        "merged": "C:\\Users\\jacky\\.gradle\\daemon\\8.13\\com.example.myapplication.app-debug-47:\\mipmap-anydpi_ic_launcher.xml.flat",
+        "source": "C:\\Users\\jacky\\.gradle\\daemon\\8.13\\com.example.myapplication.app-main-49:\\mipmap-anydpi\\ic_launcher.xml"
+    },
+    {
+        "merged": "com.example.myapplication.app-debug-47:/menu_home_menu.xml.flat",
+        "source": "com.example.myapplication.app-main-49:/menu/home_menu.xml"
+    },
+    {
+        "merged": "C:\\Users\\jacky\\.gradle\\daemon\\8.13\\com.example.myapplication.app-debug-47:\\mipmap-hdpi_ic_launcher_round.webp.flat",
+        "source": "C:\\Users\\jacky\\.gradle\\daemon\\8.13\\com.example.myapplication.app-main-49:\\mipmap-hdpi\\ic_launcher_round.webp"
+    },
+    {
+        "merged": "C:\\Users\\jacky\\.gradle\\daemon\\8.13\\com.example.myapplication.app-debug-47:\\layout_activity_setting.xml.flat",
+        "source": "C:\\Users\\jacky\\.gradle\\daemon\\8.13\\com.example.myapplication.app-main-49:\\layout\\activity_setting.xml"
+    },
+    {
+        "merged": "C:\\Users\\jacky\\.gradle\\daemon\\8.13\\com.example.myapplication.app-debug-47:\\drawable_gear.xml.flat",
+        "source": "C:\\Users\\jacky\\.gradle\\daemon\\8.13\\com.example.myapplication.app-main-49:\\drawable\\gear.xml"
+    },
+    {
+        "merged": "C:\\Users\\jacky\\.gradle\\daemon\\8.13\\com.example.myapplication.app-debug-47:\\mipmap-mdpi_ic_launcher_round.webp.flat",
+        "source": "C:\\Users\\jacky\\.gradle\\daemon\\8.13\\com.example.myapplication.app-main-49:\\mipmap-mdpi\\ic_launcher_round.webp"
+    },
+    {
+        "merged": "C:\\Users\\jacky\\.gradle\\daemon\\8.13\\com.example.myapplication.app-debug-47:\\drawable_ic_profile_placeholder.xml.flat",
+        "source": "C:\\Users\\jacky\\.gradle\\daemon\\8.13\\com.example.myapplication.app-main-49:\\drawable\\ic_profile_placeholder.xml"
+    },
+    {
+        "merged": "C:\\Users\\jacky\\.gradle\\daemon\\8.13\\com.example.myapplication.app-debug-47:\\drawable_net_error.xml.flat",
+        "source": "C:\\Users\\jacky\\.gradle\\daemon\\8.13\\com.example.myapplication.app-main-49:\\drawable\\net_error.xml"
+    },
+    {
+        "merged": "C:\\Users\\jacky\\.gradle\\daemon\\8.13\\com.example.myapplication.app-debug-47:\\mipmap-xxhdpi_ic_launcher_round.webp.flat",
+        "source": "C:\\Users\\jacky\\.gradle\\daemon\\8.13\\com.example.myapplication.app-main-49:\\mipmap-xxhdpi\\ic_launcher_round.webp"
+    },
+    {
+        "merged": "C:\\Users\\jacky\\.gradle\\daemon\\8.13\\com.example.myapplication.app-debug-47:\\mipmap-anydpi_ic_launcher_round.xml.flat",
+        "source": "C:\\Users\\jacky\\.gradle\\daemon\\8.13\\com.example.myapplication.app-main-49:\\mipmap-anydpi\\ic_launcher_round.xml"
+    },
+    {
+        "merged": "C:\\Users\\jacky\\.gradle\\daemon\\8.13\\com.example.myapplication.app-debug-47:\\drawable_placeholder.xml.flat",
+        "source": "C:\\Users\\jacky\\.gradle\\daemon\\8.13\\com.example.myapplication.app-main-49:\\drawable\\placeholder.xml"
+    },
+    {
+        "merged": "C:\\Users\\jacky\\.gradle\\daemon\\8.13\\com.example.myapplication.app-debug-47:\\xml_backup_rules.xml.flat",
+        "source": "C:\\Users\\jacky\\.gradle\\daemon\\8.13\\com.example.myapplication.app-main-49:\\xml\\backup_rules.xml"
+    },
+    {
+        "merged": "C:\\Users\\jacky\\.gradle\\daemon\\8.13\\com.example.myapplication.app-debug-47:\\layout_item_chat_message_left.xml.flat",
+        "source": "C:\\Users\\jacky\\.gradle\\daemon\\8.13\\com.example.myapplication.app-main-49:\\layout\\item_chat_message_left.xml"
+    },
+    {
+        "merged": "C:\\Users\\jacky\\.gradle\\daemon\\8.13\\com.example.myapplication.app-debug-47:\\mipmap-xxxhdpi_ic_launcher_round.webp.flat",
+        "source": "C:\\Users\\jacky\\.gradle\\daemon\\8.13\\com.example.myapplication.app-main-49:\\mipmap-xxxhdpi\\ic_launcher_round.webp"
+    },
+    {
+        "merged": "C:\\Users\\jacky\\.gradle\\daemon\\8.13\\com.example.myapplication.app-debug-47:\\mipmap-xxxhdpi_ic_launcher.webp.flat",
+        "source": "C:\\Users\\jacky\\.gradle\\daemon\\8.13\\com.example.myapplication.app-main-49:\\mipmap-xxxhdpi\\ic_launcher.webp"
+    },
+    {
+        "merged": "C:\\Users\\jacky\\.gradle\\daemon\\8.13\\com.example.myapplication.app-debug-47:\\layout_item_chat_message_right.xml.flat",
+        "source": "C:\\Users\\jacky\\.gradle\\daemon\\8.13\\com.example.myapplication.app-main-49:\\layout\\item_chat_message_right.xml"
+    },
+    {
+        "merged": "C:\\Users\\jacky\\.gradle\\daemon\\8.13\\com.example.myapplication.app-debug-47:\\drawable_ic_launcher_foreground.xml.flat",
+        "source": "C:\\Users\\jacky\\.gradle\\daemon\\8.13\\com.example.myapplication.app-main-49:\\drawable\\ic_launcher_foreground.xml"
+    },
+    {
+        "merged": "C:\\Users\\jacky\\.gradle\\daemon\\8.13\\com.example.myapplication.app-debug-47:\\mipmap-mdpi_ic_launcher.webp.flat",
+        "source": "C:\\Users\\jacky\\.gradle\\daemon\\8.13\\com.example.myapplication.app-main-49:\\mipmap-mdpi\\ic_launcher.webp"
+    },
+    {
+        "merged": "C:\\Users\\jacky\\.gradle\\daemon\\8.13\\com.example.myapplication.app-debug-47:\\layout_activity_register.xml.flat",
+        "source": "C:\\Users\\jacky\\.gradle\\daemon\\8.13\\com.example.myapplication.app-main-49:\\layout\\activity_register.xml"
+    },
+    {
+        "merged": "C:\\Users\\jacky\\.gradle\\daemon\\8.13\\com.example.myapplication.app-debug-47:\\layout_chatmessage.xml.flat",
+        "source": "C:\\Users\\jacky\\.gradle\\daemon\\8.13\\com.example.myapplication.app-main-49:\\layout\\chatmessage.xml"
+    },
+    {
+        "merged": "C:\\Users\\jacky\\.gradle\\daemon\\8.13\\com.example.myapplication.app-debug-47:\\drawable_bg_chat_other.xml.flat",
+        "source": "C:\\Users\\jacky\\.gradle\\daemon\\8.13\\com.example.myapplication.app-main-49:\\drawable\\bg_chat_other.xml"
+    },
+    {
+        "merged": "C:\\Users\\jacky\\.gradle\\daemon\\8.13\\com.example.myapplication.app-debug-47:\\layout_item_destination.xml.flat",
+        "source": "C:\\Users\\jacky\\.gradle\\daemon\\8.13\\com.example.myapplication.app-main-49:\\layout\\item_destination.xml"
+    },
+    {
+        "merged": "C:\\Users\\jacky\\.gradle\\daemon\\8.13\\com.example.myapplication.app-debug-47:\\layout_add_group.xml.flat",
+        "source": "C:\\Users\\jacky\\.gradle\\daemon\\8.13\\com.example.myapplication.app-main-49:\\layout\\add_group.xml"
+    },
+    {
+        "merged": "C:\\Users\\jacky\\.gradle\\daemon\\8.13\\com.example.myapplication.app-debug-47:\\mipmap-xxhdpi_ic_launcher.webp.flat",
+        "source": "C:\\Users\\jacky\\.gradle\\daemon\\8.13\\com.example.myapplication.app-main-49:\\mipmap-xxhdpi\\ic_launcher.webp"
+    },
+    {
+        "merged": "C:\\Users\\jacky\\.gradle\\daemon\\8.13\\com.example.myapplication.app-debug-47:\\mipmap-hdpi_ic_launcher.webp.flat",
+        "source": "C:\\Users\\jacky\\.gradle\\daemon\\8.13\\com.example.myapplication.app-main-49:\\mipmap-hdpi\\ic_launcher.webp"
+    },
+    {
+        "merged": "C:\\Users\\jacky\\.gradle\\daemon\\8.13\\com.example.myapplication.app-debug-47:\\drawable_bg_chat_me.xml.flat",
+        "source": "C:\\Users\\jacky\\.gradle\\daemon\\8.13\\com.example.myapplication.app-main-49:\\drawable\\bg_chat_me.xml"
+    },
+    {
+        "merged": "C:\\Users\\jacky\\.gradle\\daemon\\8.13\\com.example.myapplication.app-debug-47:\\xml_data_extraction_rules.xml.flat",
+        "source": "C:\\Users\\jacky\\.gradle\\daemon\\8.13\\com.example.myapplication.app-main-49:\\xml\\data_extraction_rules.xml"
+    },
+    {
+        "merged": "C:\\Users\\jacky\\.gradle\\daemon\\8.13\\com.example.myapplication.app-debug-47:\\mipmap-xhdpi_ic_launcher.webp.flat",
+        "source": "C:\\Users\\jacky\\.gradle\\daemon\\8.13\\com.example.myapplication.app-main-49:\\mipmap-xhdpi\\ic_launcher.webp"
+    },
+    {
+        "merged": "C:\\Users\\jacky\\.gradle\\daemon\\8.13\\com.example.myapplication.app-debug-47:\\layout_activity_home.xml.flat",
+        "source": "C:\\Users\\jacky\\.gradle\\daemon\\8.13\\com.example.myapplication.app-main-49:\\layout\\activity_home.xml"
+    },
+    {
+        "merged": "com.example.myapplication.app-debug-47:/layout_activity_home.xml.flat",
+        "source": "com.example.myapplication.app-main-49:/layout/activity_home.xml"
+    },
+    {
+        "merged": "C:\\Users\\jacky\\.gradle\\daemon\\8.13\\com.example.myapplication.app-debug-47:\\drawable_ic_launcher_background.xml.flat",
+        "source": "C:\\Users\\jacky\\.gradle\\daemon\\8.13\\com.example.myapplication.app-main-49:\\drawable\\ic_launcher_background.xml"
+    },
+    {
+        "merged": "C:\\Users\\jacky\\.gradle\\daemon\\8.13\\com.example.myapplication.app-debug-47:\\mipmap-xhdpi_ic_launcher_round.webp.flat",
+        "source": "C:\\Users\\jacky\\.gradle\\daemon\\8.13\\com.example.myapplication.app-main-49:\\mipmap-xhdpi\\ic_launcher_round.webp"
+    },
+    {
+        "merged": "C:\\Users\\jacky\\.gradle\\daemon\\8.13\\com.example.myapplication.app-debug-47:\\layout_activity_main.xml.flat",
+        "source": "C:\\Users\\jacky\\.gradle\\daemon\\8.13\\com.example.myapplication.app-main-49:\\layout\\activity_main.xml"
+    }
+]

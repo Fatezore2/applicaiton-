@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="25dp"
+    android:layout_marginBottom="10dp"
+    android:background="#FFFFFF">
+
+    <!-- ================= Chat Area ================= -->
+    <TextView
+        android:id="@+id/tvaddChatTitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="新增目的地"
+        android:textStyle="bold"
+        android:textSize="16sp"
+        android:layout_marginBottom="8dp"/>
+
+    <!-- Divider -->
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="200dp"
+        android:background="#F3FBFB"
+        android:padding="8dp">
+
+        <LinearLayout
+            android:id="@+id/layoutChatMessages"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <!-- chat messages dynamically added -->
+
+        </LinearLayout>
+    </ScrollView>
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_marginVertical="12dp"
+        android:background="#E0E0E0"/>
+
+    <!-- ================= Add Destination ================= -->
+    <TextView
+        android:id="@+id/tvAddDestinationTitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="新增目的地"
+        android:textStyle="bold"
+        android:textSize="15sp"/>
+
+    <EditText
+        android:id="@+id/etDestinationName"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="目的地名稱 (例：艾菲爾鐵塔)"
+        android:layout_marginTop="8dp"/>
+
+    <EditText
+        android:id="@+id/etDestinationTime"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="集合時間 (例：17:30)"
+        android:layout_marginTop="8dp"/>
+
+    <Button
+        android:id="@+id/btnSendDestination"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:layout_marginTop="12dp"
+        android:text="送出目的地"
+        android:textColor="@android:color/white"
+        android:background="#2EC4C1"
+        />
+
+    <org.osmdroid.views.MapView
+        android:id="@+id/mapPick"
+        android:layout_width="match_parent"
+        android:layout_height="200dp"/>
+
+
+</LinearLayout>
